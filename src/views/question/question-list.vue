@@ -1,40 +1,38 @@
 <template>
   <div class="joo-question">
     <!-- <Header class="joo-question-header"></Header> -->
-    <my-scroll class="wrapper" :data="data" :pullup="true" :pulldown="true" @pulldown="loadData" @scrollToEnd="loadMore">
-      <div class="joo-question-top-card">
-        <div class="card-tags">
-          <span class="tag-item" v-for="(item,index) of tagList" :key="index">{{item}}</span>
-        </div>
-        <div class="card-title">未按规定开具发票但未少缴税是否也会受处罚？</div>
-        <div class="card-desc" :class="showDescDetail?'':'card-desc-collapse'">酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项，酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项，酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项.</div>
-        <div class="card-imgs" v-show="showDescDetail">
-          <flexbox>
-            <flexbox-item v-for="(item, index) of imgList" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
-          </flexbox>
-        </div>
-        <div class="card-collapse" @click="showDescDetail = !showDescDetail">{{showDescDetail?'收起':'展开'}}
-          <i class="iconfont" :class="showDescDetail?'icon-shouqi':'icon-zhankai'" style="font-size: 13px;"></i>
-        </div>
-        <div class="card-footer">
-          <img class="card-avatar" src="https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1031893560,2135917576&fm=27&gp=0.jpg"
-          />
-          <div class="card-name">胡一天</div>
-          <div class="card-others">09-22 • 浏览 59 • 回答 59</div>
-        </div>
+    <div class="joo-question-top-card">
+      <div class="card-tags">
+        <span class="tag-item" v-for="(item,index) of tagList" :key="index">{{item}}</span>
       </div>
-      <CardItemAnswer :isBestAdopt="true" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
-        time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
+      <div class="card-title">未按规定开具发票但未少缴税是否也会受处罚？</div>
+      <div class="card-desc" :class="showDescDetail?'':'card-desc-collapse'">酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项，酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项，酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项.</div>
+      <div class="card-imgs" v-show="showDescDetail">
+        <flexbox>
+          <flexbox-item v-for="(item, index) of imgList" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
+        </flexbox>
+      </div>
+      <div class="card-collapse" @click="showDescDetail = !showDescDetail">{{showDescDetail?'收起':'展开'}}
+        <i class="iconfont" :class="showDescDetail?'icon-shouqi':'icon-zhankai'" style="font-size: 13px;"></i>
+      </div>
+      <div class="card-footer">
+        <img class="card-avatar" src="https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1031893560,2135917576&fm=27&gp=0.jpg"
+        />
+        <div class="card-name">胡一天</div>
+        <div class="card-others">09-22 • 浏览 59 • 回答 59</div>
+      </div>
+    </div>
+    <CardItemAnswer :isBestAdopt="true" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
+      time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
 任何单位和个人不得有下列虚开发票行为" commentNum="5" fabulousNum="12"></CardItemAnswer>
-      <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">精选回答</span>
-      <CardItemAnswer v-for="(item,index) of 5" :key="index" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
-        time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
+    <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">精选回答</span>
+    <CardItemAnswer v-for="(item,index) of 5" :key="index" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
+      time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
 任何单位和个人不得有下列虚开发票行为" commentNum="5" fabulousNum="12"></CardItemAnswer>
-      <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">其他回答</span>
-      <CardItemAnswer v-for="(item,index) of 10" :key="index+100" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
-        time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
+    <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">其他回答</span>
+    <CardItemAnswer v-for="(item,index) of 10" :key="index+100" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
+      time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
 任何单位和个人不得有下列虚开发票行为" commentNum="5" fabulousNum="12"></CardItemAnswer>
-    </my-scroll>
     <Footer class="joo-question-footer">
       <template slot="content">
         <div class="joo-collect" @click="collect">

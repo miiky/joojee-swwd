@@ -91,7 +91,7 @@ const router = new Router({
       path: '/message',
       name: 'message',
       meta: {
-        title: '我的消息',
+        title: '通知',
         menuBar: { id: 10, imgFont: 'e618' }
       },
       component: Message
