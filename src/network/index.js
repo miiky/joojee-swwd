@@ -50,3 +50,25 @@ export let listNewestProblems = (token, pageNo = 0, pageSize = 10) =>
     pageNo: pageNo,
     pageSize: pageSize
   })
+
+/**
+ *
+ * @param {服务token} token
+ * @param {问题ID} id
+ * @param {jeebbs状态令牌} sessionKey
+ */
+export let getProblem = (token, id, sessionKey) =>
+  Axios.post(SWWD_API_URL + '/getProblem', {
+    access_token: token,
+    id: id,
+    sessionKey: sessionKey
+  })
+
+export let listReplys = (token, id, pageNo, pageSize, sessionKey) =>
+  Axios.post(SWWD_API_URL + '/listReplys', {
+    access_token: token,
+    problemId: id,
+    pageNo: pageNo,
+    pageSize: pageSize,
+    sessionKey: sessionKey
+  })

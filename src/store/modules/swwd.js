@@ -47,6 +47,28 @@ const mutations = {
       })
     })
     state.recommondPage++
+  },
+  setNewestList(state, payload) {
+    payload.forEach(element => {
+      // 处理回复内容
+      let replys =
+        element.replys.length == 0
+          ? [{ content: '', replyType: 3 }]
+          : element.replys
+      // 处理标签
+      let tags =
+        element.tags.length == 0 ? [{ id: 0, name: '无标签' }] : element.tags
+      //
+      state.newestList.push({
+        id: element.id,
+        title: element.title,
+        replys: replys,
+        tags: tags,
+        viewCount: element.viewCount || 0,
+        replyCount: element.replyCount || 0
+      })
+    })
+    state.newestPage++
   }
 }
 

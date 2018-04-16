@@ -10,6 +10,8 @@ import AnswerList from '@/views/answer/answer-list'
 import Answer from '@/views/answer/answer'
 import AskOne from '@/views/question/ask-title'
 import AskTwo from '@/views/question/ask-tag'
+import HomePage from '@/views/home/homepage'
+import Message from '@/views/home/message'
 
 const router = new Router({
   mode: 'history',
@@ -21,7 +23,10 @@ const router = new Router({
       meta: {
         title: '税务问答',
         menuBar: { id: 1, imgFont: 'e634' },
-        menuBars: [{ id: 2, imgFont: 'e62c', name: '我的主页' }]
+        menuBars: [
+          { id: 2, imgFont: 'e62c', name: '我的主页' },
+          { id: 11, imgFont: 'e67e', name: '我的消息' }
+        ]
       },
       component: Home
     },
@@ -73,6 +78,23 @@ const router = new Router({
         menuBar: { id: 9, name: '发布' }
       },
       component: Answer
+    },
+    {
+      path: '/homepage',
+      name: 'homepage',
+      meta: {
+        title: '我的主页'
+      },
+      component: HomePage
+    },
+    {
+      path: '/message',
+      name: 'message',
+      meta: {
+        title: '我的消息',
+        menuBar: { id: 10, imgFont: 'e618' }
+      },
+      component: Message
     }
   ]
 })

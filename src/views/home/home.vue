@@ -33,7 +33,7 @@
         </swiper-item>
         <swiper-item>
           <div class="tab-content-news" ref="newsBody">
-            <CardItem v-for="item of recommendBody.list" :key="item.id" :title="item.title" :answer="item.replys[0].content" :tagList="item.tags"
+            <CardItem v-for="(item,index) of newestList" :key="index" :title="item.title" :answer="item.replys[0].content" :tagList="item.tags"
               :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
           </div>
         </swiper-item>
@@ -56,6 +56,7 @@ import HotDiscussCard from './components/hot-discuss-card.vue'
 import CardItem from '@/views/commons/card-item.vue'
 
 import { Tab, TabItem, Sticky, Swiper, SwiperItem, LoadMore } from 'vux'
+import bus from '@/utils/bus'
 import * as Net from '@/network/index'
 import * as Utils from '@/utils/index'
 import { mapGetters, mapMutations } from 'vuex'
@@ -181,7 +182,13 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['serverAccessToken', 'recommondList', 'recommondPage'])
+    ...mapGetters([
+      'serverAccessToken',
+      'recommondList',
+      'recommondPage',
+      'newestList',
+      'newestPage'
+    ])
   },
   async created() {
     const _this = this
@@ -189,16 +196,31 @@ export default {
     if (Utils.isEmpty(_this.serverAccessToken)) {
       await _this._initToken()
     }
-    _this.setRecommondList(_this.recommendBody.list)
     //获取业务数据
-    // _this._getRecommondList()
+    _this.setRecommondList(_this.recommendBody.list)
+    _this._getNewestList()
   },
   mounted() {
     this._initHotWrapper()
+    this._handelMenuAction()
   },
   methods: {
-    ...mapMutations(['setServerAccessToken', 'setRecommondList']),
+    ...mapMutations([
+      'setServerAccessToken',
+      'setRecommondList',
+      'setNewestList'
+    ]),
+    _handelMenuAction() {
+      const _this = this
+      bus.$on('menu2', data => {
+        _this.$router.push('/homepage')
+      })
+      bus.$on('menu11', data => {
+        _this.$router.push('/message')
+      })
+    },
     async _initToken() {
+      // 获取token
       const _this = this
       await Net.getServerToken().then(res => {
         console.log(res)
@@ -210,12 +232,23 @@ export default {
       })
     },
     async _getRecommondList() {
+      // 获取推荐列表
       const _this = this
       await Net.listRecommendProblems(
         _this.serverAccessToken,
         _this.recommondPage
       ).then(res => {
         _this.setRecommondList(res.data.entities)
+      })
+    },
+    async _getNewestList() {
+      // 获取最新列表
+      const _this = this
+      await Net.listNewestProblems(
+        _this.serverAccessToken,
+        _this.newestPage
+      ).then(res => {
+        _this.setNewestList(res.data.entities)
       })
     },
     _initHotWrapper() {
@@ -229,10 +262,12 @@ export default {
       })
     },
     swiperChange(currentIndex) {
+      // 改变tab
       const _this = this
       _this.reSizeSwiperHeight(currentIndex)
     },
     reSizeSwiperHeight(currentIndex) {
+      // 重新计算页面高度
       const _this = this
       let heights = [
         this.$refs.attentionBody.offsetHeight,
@@ -249,7 +284,12 @@ export default {
         return
       }
       this.showLoading = true
-      await this._getRecommondList()
+      if (this.tabIndex == 0) {
+      } else if (this.tabIndex == 1) {
+        await this._getRecommondList()
+      } else if (this.tabIndex == 2) {
+        await this._getNewestList()
+      }
       this.showLoading = false
       this.reSizeSwiperHeight(this.tabIndex)
       // setTimeout(() => {
