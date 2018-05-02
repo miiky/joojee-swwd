@@ -1,50 +1,61 @@
 <template>
   <div class="joo-main">
-    <!-- <Header class="joo-header"></Header> -->
-    <div class="joo-content" ref="jooContent">
-      <div class="joo-hot" ref="hotWrapper" v-once>
-        <ul class="hot-list" ref="hotList">
-          <li class="hot-item" v-for="item in 3" :key="item">
-            <HotDiscussCard title="天猫既然都走公账了，税反正都..." desc="4396人参与讨论"></HotDiscussCard>
-          </li>
-        </ul>
-      </div>
-      <sticky :check-sticky-support="false" :offset="0">
+    <div class="joo-hot" ref="hotWrapper">
+      <ul class="hot-list" ref="hotList">
+        <li class="hot-item" v-for="item in hotDiscussList" :key="item.id">
+          <HotDiscussCard :title="item.title" :desc="item.replyCount" :id="item.id"></HotDiscussCard>
+        </li>
+      </ul>
+    </div>
+    <div style="height:44px;">
+      <sticky :check-sticky-support="false" :offset="0" ref="sticky">
         <tab :line-width='2' custom-bar-width="20px" bar-active-color="#1985c4" default-color="#495060" active-color="#1985c4" v-model="tabIndex">
           <tab-item style="font-size:16px;" :selected="chooseTab === item" v-for="(item, index) in tabList" @click="chooseTab = item"
             :key="index">{{item}}</tab-item>
         </tab>
       </sticky>
-      <swiper ref="swiper" v-model="tabIndex" height="aspect-ratio" :show-dots="false" :threshold="150" :min-moving-distance="150"
-        @on-index-change="swiperChange">
-        <swiper-item>
-          <div class="tab-content-attention" ref="attentionBody">
-            <CardItem v-for="item of recommendBody.list" :key="item.id" :title="item.title" :answer="item.replys[0].content||''" :tagList="item.tags"
-              :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount" :needHeader="true"
-              name="神奇的设计师" :acitonType="1" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
-              time="04-04"></CardItem>
-          </div>
-        </swiper-item>
-        <swiper-item>
-          <div class="tab-content-recommend" ref="recommendBody">
-            <CardItem v-for="(item,index) of recommondList" :key="index" :title="item.title" :answer="item.replys[0].content" :tagList="item.tags"
-              :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
-          </div>
-        </swiper-item>
-        <swiper-item>
-          <div class="tab-content-news" ref="newsBody">
-            <CardItem v-for="(item,index) of newestList" :key="index" :title="item.title" :answer="item.replys[0].content" :tagList="item.tags"
-              :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
-          </div>
-        </swiper-item>
-      </swiper>
-      <load-more :show-loading="showLoading" :tip="loadMoreTips" background-color="#fbf9fe" @click.native="loadMore"></load-more>
     </div>
+    <swiper ref="swiper" v-model="tabIndex" height="aspect-ratio" :show-dots="false" :threshold="150" :min-moving-distance="150"
+      @on-index-change="swiperChange">
+      <swiper-item>
+        <div class="tab-content-attention" ref="attentionBody">
+          <div class="no-content" v-if="attentionList.length == 0">
+            <img class="no-content-img" src="@/assets/imgs/no-content.png" />
+            <p>暂无关注，左滑去推荐看看</p>
+          </div>
+          <CardItem v-for="(item,index) of attentionList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content||''"
+            :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"
+            :needHeader="true" :name="item.name" :acitonType="1" :avatar="item.profilePicture" :time="item.time"></CardItem>
+        </div>
+      </swiper-item>
+      <swiper-item>
+        <div class="tab-content-recommend" ref="recommendBody">
+          <div class="no-content" v-if="recommondList.length == 0">
+            <img class="no-content-img" src="@/assets/imgs/no-content.png" />
+            <p>暂无推荐内容</p>
+          </div>
+          <CardItem v-for="(item,index) of recommondList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
+            :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+        </div>
+      </swiper-item>
+      <swiper-item>
+        <div class="tab-content-news" ref="newsBody">
+          <div class="no-content" v-if="newestList.length == 0">
+            <img class="no-content-img" src="@/assets/imgs/no-content.png" />
+            <p>暂无最新内容</p>
+          </div>
+          <CardItem v-for="(item,index) of newestList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
+            :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+        </div>
+      </swiper-item>
+    </swiper>
+    <load-more v-show="showLoadmore" :show-loading="showLoading" :tip="loadMoreTips" background-color="#fbf9fe" @click.native="loadMore"></load-more>
     <router-link :to="{ name: 'askOne'}">
       <div class="joo-question-btn">
         <i class="iconfont icon-tiwen" style="font-size: 24px;"></i>
       </div>
     </router-link>
+  </div>
   </div>
 </template>
 
@@ -60,8 +71,6 @@ import bus from '@/utils/bus'
 import * as Net from '@/network/index'
 import * as Utils from '@/utils/index'
 import { mapGetters, mapMutations } from 'vuex'
-
-let mainScroll
 
 export default {
   name: 'home',
@@ -79,99 +88,11 @@ export default {
   data() {
     return {
       showLoading: false,
+      showLoadmore: true,
       loadMoreTips: '加载更多',
       tabIndex: 1,
       tabList: ['关注', '推荐', '最新'],
-      chooseTab: '关注',
-      recommendBody: {
-        list: [
-          {
-            id: '999',
-            title: '未按规定开具发票但未少缴税是否也会受处罚？',
-            replys: [
-              {
-                replyType: 0,
-                content:
-                  '根据《中华人民共和国发票管理办法》第二十二条第一款的规定，开具发票应当按照规定的时限...'
-              }
-            ],
-            tags: [
-              { id: 1, name: '增值税' },
-              { id: 2, name: '流通' },
-              { id: 3, name: '价外税' }
-            ],
-            viewCount: 20,
-            replyCount: 43
-          },
-          {
-            id: '998',
-            title:
-              '发票的作用是什么，为什么会用那么多类发票，它们的区别是什么？',
-            replys: [
-              {
-                replyType: 1,
-                content:
-                  '根据《中华人民共和国发票管理办法》第二十二条第一款的规定，开具发票应当按照规定的时限...'
-              }
-            ],
-            tags: [
-              { id: 1, name: '增值税' },
-              { id: 2, name: '流通' },
-              { id: 3, name: '价外税' }
-            ],
-            viewCount: 20,
-            replyCount: 43
-          },
-          {
-            id: '997',
-            title:
-              '发票的作用是什么，为什么会用那么多类发票，它们的区别是什么？',
-            replys: [
-              {
-                replyType: 0,
-                content:
-                  '本文约有一万余字，约四十幅插图，分3章，若干个小节。内容绝大多数来自于本人在知乎上的...'
-              }
-            ],
-            tags: [{ id: 1, name: '票据' }, { id: 2, name: '发票' }],
-            viewCount: 205,
-            replyCount: 432
-          },
-          {
-            id: '996',
-            title: '未按规定开具发票但未少缴税是否也会受处罚？',
-            replys: [
-              {
-                replyType: 0,
-                content:
-                  '根据《中华人民共和国发票管理办法》第二十二条第一款的规定，开具发票应当按照规定的时限...'
-              }
-            ],
-            tags: [
-              { id: 1, name: '增值税' },
-              { id: 2, name: '流通' },
-              { id: 3, name: '价外税' }
-            ],
-            viewCount: 20,
-            replyCount: 43
-          },
-          {
-            id: '995',
-            title:
-              '发票的作用是什么，为什么会用那么多类发票，它们的区别是什么？',
-            replys: [
-              {
-                replyType: 1,
-                content:
-                  '本文约有一万余字，约四十幅插图，分3章，若干个小节。内容绝大多数来自于本人在知乎上的...'
-              }
-            ],
-            tags: [{ id: 1, name: '票据' }, { id: 2, name: '发票' }],
-            viewCount: 20,
-            replyCount: 43
-          }
-        ]
-      }
+      chooseTab: '关注'
     }
   },
   watch: {
@@ -184,32 +105,61 @@ export default {
   computed: {
     ...mapGetters([
       'serverAccessToken',
+      'sessionKey',
+      'hotDiscussList',
+      'attentionList',
       'recommondList',
-      'recommondPage',
       'newestList',
+      'attentionPage',
+      'recommondPage',
       'newestPage'
     ])
   },
-  async created() {
+  async mounted() {
     const _this = this
-    //如果没有服务token则获取服务token
-    if (Utils.isEmpty(_this.serverAccessToken)) {
-      await _this._initToken()
-    }
-    //获取业务数据
-    _this.setRecommondList(_this.recommendBody.list)
-    _this._getNewestList()
-  },
-  mounted() {
-    this._initHotWrapper()
     this._handelMenuAction()
+    this.$refs.sticky.bindSticky()
+    //获取业务数据
+    if (_this.serverAccessToken == '') {
+      return
+    }
+    if (Utils.isEmpty(_this.sessionKey)) {
+      await Utils.initOauth()
+      await _this._initUserId()
+    }
+    if (_this.hotDiscussList.length == 0) {
+      await _this._listHotDiscuss()
+    } else {
+      await _this._initHotWrapper()
+    }
+    if (_this.recommondPage == 1) {
+      await _this._getRecommondList(1)
+    }
+    if (_this.newestPage == 1) {
+      await _this._getNewestList(1)
+    }
+    if (_this.attentionPage == 1) {
+      await _this._getAttentionList(1)
+    }
   },
   methods: {
     ...mapMutations([
-      'setServerAccessToken',
       'setRecommondList',
-      'setNewestList'
+      'setNewestList',
+      'setAttentionList',
+      'setHotDiscussList',
+      'setUserId'
     ]),
+    onPullingUp() {
+      console.log(123)
+    },
+    _initUserId() {
+      const _this = this
+      Net.getUserId().then(res => {
+        _this.setUserId(res.data.entities[0].userId)
+        console.log('userid', res.data.entities[0].userId)
+      })
+    },
     _handelMenuAction() {
       const _this = this
       bus.$on('menu2', data => {
@@ -219,40 +169,48 @@ export default {
         _this.$router.push('/message')
       })
     },
-    async _initToken() {
-      // 获取token
+    async _listHotDiscuss() {
       const _this = this
-      await Net.getServerToken().then(res => {
-        console.log(res)
-        //将获取的token和code放到store中去管理状态
-        _this.setServerAccessToken({
-          token: res.data.access_token,
-          expires: res.data.expires_in
-        })
+      await Net.listHotDiscuss().then(res => {
+        _this.setHotDiscussList(res.data.entities)
+        _this._initHotWrapper()
       })
     },
-    async _getRecommondList() {
+    async _getRecommondList(pageNo) {
       // 获取推荐列表
       const _this = this
-      await Net.listRecommendProblems(
-        _this.serverAccessToken,
-        _this.recommondPage
-      ).then(res => {
-        _this.setRecommondList(res.data.entities)
+      await Net.listRecommendProblems(pageNo).then(res => {
+        if (res.data.entities.length != 0) {
+          _this.setRecommondList(res.data.entities)
+        } else {
+          this.loadMoreTips = '我是有底线的'
+        }
       })
     },
-    async _getNewestList() {
+    async _getNewestList(pageNo) {
       // 获取最新列表
       const _this = this
-      await Net.listNewestProblems(
-        _this.serverAccessToken,
-        _this.newestPage
-      ).then(res => {
-        _this.setNewestList(res.data.entities)
+      await Net.listNewestProblems(pageNo).then(res => {
+        if (res.data.entities.length != 0) {
+          _this.setNewestList(res.data.entities)
+        } else {
+          this.loadMoreTips = '我是有底线的'
+        }
+      })
+    },
+    async _getAttentionList(pageNo) {
+      const _this = this
+      await Net.listAttentProblems(pageNo).then(res => {
+        // console.log('attention', res)
+        if (res.data.entities.length != 0) {
+          _this.setAttentionList(res.data.entities)
+        } else {
+          this.loadMoreTips = '我是有底线的'
+        }
       })
     },
     _initHotWrapper() {
-      let width = 280 * 3
+      let width = 280 * this.hotDiscussList.length
       this.$refs.hotList.style.width = width + 'px'
       this.$nextTick(() => {
         this.picScroll = new BScroll(this.$refs.hotWrapper, {
@@ -264,6 +222,7 @@ export default {
     swiperChange(currentIndex) {
       // 改变tab
       const _this = this
+      _this.loadMoreTips = '加载更多'
       _this.reSizeSwiperHeight(currentIndex)
     },
     reSizeSwiperHeight(currentIndex) {
@@ -274,28 +233,36 @@ export default {
         this.$refs.recommendBody.offsetHeight,
         this.$refs.newsBody.offsetHeight
       ]
-      _this.loadMoreTips = '加载更多'
       _this.$nextTick(() => {
         _this.$refs.swiper.xheight = heights[currentIndex] + 'px'
       })
+      switch (currentIndex) {
+        case 0:
+          _this.showLoadmore = _this.attentionList.length != 0
+          break
+        case 1:
+          _this.showLoadmore = _this.recommondList.length != 0
+          break
+        case 2:
+          _this.showLoadmore = _this.newestList.length != 0
+          break
+      }
     },
     async loadMore() {
-      if (this.loadMoreTips == '我是有底线的') {
+      const _this = this
+      if (_this.loadMoreTips == '我是有底线的') {
         return
       }
-      this.showLoading = true
-      if (this.tabIndex == 0) {
-      } else if (this.tabIndex == 1) {
-        await this._getRecommondList()
-      } else if (this.tabIndex == 2) {
-        await this._getNewestList()
+      _this.showLoading = true
+      if (_this.tabIndex == 0) {
+        await _this._getAttentionList(_this.attentionPage)
+      } else if (_this.tabIndex == 1) {
+        await _this._getRecommondList(_this.recommondPage)
+      } else if (_this.tabIndex == 2) {
+        await _this._getNewestList(_this.newestPage)
       }
-      this.showLoading = false
-      this.reSizeSwiperHeight(this.tabIndex)
-      // setTimeout(() => {
-      //   this.loadMoreTips = '我是有底线的'
-      //   this.showLoading = false
-      // }, 2000)
+      _this.showLoading = false
+      _this.reSizeSwiperHeight(_this.tabIndex)
     }
   }
 }
@@ -304,28 +271,39 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="less" scoped>
 .joo-main {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background-color: #f5f5f5;
-  // .joo-header {
-  //   position: fixed;
-  //   width: 100%;
-  //   height: auto;
-  //   overflow-y: auto;
-  //   z-index: 9999;
-  // }
-  .joo-content {
+  .main-scroll {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  .joo-hot {
+    position: relative;
+    top: 0;
     width: 100%;
+    height: 120px;
     overflow: hidden;
-    .joo-hot {
-      width: 100%;
-      overflow: hidden;
-      white-space: nowrap;
-      .hot-list {
-        .hot-item {
-          display: inline-block;
-        }
+    white-space: nowrap;
+    .hot-list {
+      .hot-item {
+        display: inline-block;
       }
     }
+  }
+  .content-scroll {
+    position: absolute;
+    top: 164px;
+    bottom: 0;
+    width: 100%;
     .joo-swiper {
+      position: relative;
       width: 100%;
       overflow: hidden;
       // white-space: nowrap;
@@ -336,6 +314,7 @@ export default {
       }
     }
   }
+
   .joo-question-btn {
     position: fixed;
     right: 20px;
@@ -343,13 +322,24 @@ export default {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background-color: #1985c4;
+    background-color: #1885c4;
     box-shadow: 0 1px 10px #80848f;
     text-align: center;
     line-height: 50px;
     color: white;
     font-size: 26px;
     font-weight: 500;
+  }
+  .no-content {
+    text-align: center;
+    padding: 10rem 0;
+    .no-content-img {
+      width: 127px;
+    }
+    p {
+      color: #a5a5a5;
+      font-size: 15px;
+    }
   }
 }
 </style>

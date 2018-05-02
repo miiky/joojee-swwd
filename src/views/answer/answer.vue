@@ -1,7 +1,7 @@
 <template>
   <div class="joo-answer">
     <div class="answer-title-div">
-      {{title}}
+      {{answer.title}}
     </div>
     <div class="answer-desc-div">
       <textarea ref="answerTextarea" v-focus class="answer-desc" utocomplete="off" contenteditable="true" autocapitalize="on" autocorrect="off"
@@ -41,6 +41,9 @@
 import bus from '@/utils/bus'
 import * as utils from '@/utils/index'
 import { TransferDom, Popup, XCircle } from 'vux'
+import { mapGetters, mapMutations } from 'vuex'
+import * as Net from '@/network/index'
+
 export default {
   directives: {
     TransferDom,
@@ -55,12 +58,14 @@ export default {
     Popup,
     XCircle
   },
+  computed: {
+    ...mapGetters(['answer'])
+  },
   data() {
     return {
       showPopup: false,
       popupType: false,
       popupMsg: ' 请填写回答内容！',
-      title: '未按规定开具发票但未少缴税是否也会受处罚？',
       content: '',
       imgList: [],
       index: 0
@@ -76,24 +81,35 @@ export default {
     }
   },
   mounted() {
-    this.handelMenuAction()
+    this._handelMenuAction()
     this.$refs.answerTextarea.focus()
   },
   methods: {
-    handelMenuAction() {
+    _handelMenuAction() {
       const _this = this
       bus.$on('menu9', data => {
         if (utils.isEmpty(_this.content)) {
           _this.showPopup = true
           return
         }
-        _this.popupType = true
-        _this.popupMsg = ' 发布成功！'
-        _this.showPopup = true
-        setTimeout(() => {
-          _this.$router.go(-1)
-        }, 1500)
+        _this._submit()
       })
+    },
+    _submit() {
+      const _this = this
+      _this.popupType = true
+      _this.popupMsg = ' 发布成功！'
+      _this.showPopup = true
+      let imgUrl = []
+      _this.imgList.forEach(item => {
+        imgUrl.push(item.picUrl)
+      })
+      Net.submitReply(_this.answer.id, _this.content, imgUrl).then(res => {
+        console.log(res)
+      })
+      setTimeout(() => {
+        _this.$router.go(-1)
+      }, 1500)
     },
     uploadImg() {
       const _this = this

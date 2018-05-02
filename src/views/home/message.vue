@@ -6,10 +6,10 @@
     </div>
     <popup v-model="showMessageType" position="top">
       <div class="msg-pop">
-        <button class="type-tag" :class="currentTagId == item.id?'current-tag':''" v-for="item of tagList" :key="item.id" @click="currentTagId = item.id">{{item.name}}</button>
+        <button class="type-tag" :class="currentTagId == item.id?'current-tag':''" v-for="item of tagList" :key="item.id" @click="setTag(item)">{{item.name}}</button>
       </div>
     </popup>
-    <div class="joo-notic-item" v-for="(item,index) of 10" :key="index">
+    <div class="joo-notic-item" v-for="(item,index) of 20" :key="index">
       <div class="item-avatar">
         <img class="avatar-img" src="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3802506693,1778634825&fm=27&gp=0.jpg"
         />
@@ -17,10 +17,10 @@
       <div class="item-content">
         <div class="content-top">
           <span class="item-action"><span class="action-name">梁江秋</span>赞了我的回答</span>
-          <span class="item-time">3小时前</span>
         </div>
         <div class="content-bottom">报销加油税是否需要缴纳个税？</div>
       </div>
+      <span class="item-time">3小时前</span>
     </div>
   </div>
 </template>
@@ -63,12 +63,23 @@ export default {
       bus.$on('menu10', data => {
         _this.showMessageType = !_this.showMessageType
       })
+    },
+    setTag(item) {
+      const _this = this
+      _this.currentTagId = item.id
+      _this.showMessageType = false
+      document.title = '通知（' + item.name + '）'
+      _this.$store.commit('setTopLoading', true)
+      setTimeout(() => {
+        _this.$store.commit('setTopLoading', false)
+      }, 1000)
     }
   }
 }
 </script>
 <style lang="less" scoped>
 .joo-message {
+  background-color: #f5f5f5;
   .no-more {
     text-align: center;
     margin-top: 30%;
@@ -103,7 +114,9 @@ export default {
     padding: 10px;
     position: relative;
     border-bottom: 1px solid #efefef;
+    vertical-align: middle;
     .item-avatar {
+      vertical-align: middle;
       display: inline-block;
       .avatar-img {
         width: 44px;
@@ -112,6 +125,7 @@ export default {
       }
     }
     .item-content {
+      vertical-align: middle;
       margin-left: 10px;
       display: inline-block;
       .content-top {
@@ -123,17 +137,17 @@ export default {
             color: #1885c4;
           }
         }
-        .item-time {
-          position: fixed;
-          right: 15px;
-          color: #a5a5a5;
-          font-size: 12px;
-        }
       }
       .content-bottom {
         color: #333333;
         font-size: 15px;
       }
+    }
+    .item-time {
+      position: absolute;
+      right: 15px;
+      color: #a5a5a5;
+      font-size: 12px;
     }
   }
 }

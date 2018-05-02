@@ -7,10 +7,27 @@
         autofocus></textarea>
       <div class="ask-title-count">{{title.length}}/50</div>
     </div>
-    <div ref="askEdit" class="ask-title-edit">{{title}}</div>
     <div class="ask-desc-div">
-      <textarea class="ask-desc" utocomplete="off" contenteditable="true" autocapitalize="on" autocorrect="off" spellcheck="false"
-        rows="5" placeholder="添加问题描述(选填)" name="description" maxlength="300"></textarea>
+      <div class="ask-select" v-show="showSelect">
+        <div class="select-scroll" ref="selectDiv">
+          <ul>
+            <li v-show="searchList.length == 0">
+              <div class="no-more">没有匹配的问题</div>
+            </li>
+            <li v-for="item of searchList" :key="item.id">
+              <router-link :to="{ name: 'question', params: { id: `${item.id}` }}">
+                <div class="select-item">
+                  <div class="item-title" v-html="item.title"></div>
+                  <div class="item-desc">{{'回答 '+`${item.replyCount}`+' • 浏览 '+`${item.viewCount}`+' • '+`${item.createTime}`}}</div>
+                </div>
+              </router-link>
+            </li>
+          </ul>
+        </div>
+        <div class="close-scroll" @click="showSelect = false"><i class="iconfont icon-shouqi"></i> 收起</div>
+      </div>
+      <textarea class="ask-desc" utocomplete="off" v-model="content" contenteditable="true" autocapitalize="on" autocorrect="off"
+        spellcheck="false" rows="5" placeholder="添加问题描述(选填)" name="description" maxlength="300"></textarea>
       <div class="ask-imgs">
         <flexbox :gutter="15">
           <flexbox-item :span="3" v-for="(item,index) of imgList" :key="index">
@@ -45,7 +62,13 @@
 <script>
 import bus from '@/utils/bus'
 import * as utils from '@/utils/index'
-import { TransferDom, Popup, XCircle } from 'vux'
+import { TransferDom, Popup, XCircle, Scroller } from 'vux'
+import BScroll from 'better-scroll'
+import * as Net from '@/network/index'
+
+import autosize from 'autosize'
+
+import { mapGetters, mapMutations } from 'vuex'
 export default {
   directives: {
     TransferDom,
@@ -58,28 +81,31 @@ export default {
   },
   components: {
     Popup,
-    XCircle
+    XCircle,
+    Scroller
   },
   data() {
     return {
       title: '',
+      content: '',
       titleRow: 1,
       imgList: [],
       result: null,
       index: 0,
-      showError: false
+      showError: false,
+
+      showSelect: false,
+      searchList: []
     }
   },
   watch: {
     title: function(val) {
       const _this = this
-      let tr = _this.$refs.askTitle.scrollHeight / 24
-      let er = _this.$refs.askEdit.scrollHeight / 24
-      console.log(tr + ':' + er)
-      if (tr == er || val.length < 10) {
-        _this.titleRow = tr
+      if (val.length >= 2) {
+        _this.showSelect = true
+        _this.search()
       } else {
-        _this.titleRow = er
+        _this.showSelect = false
       }
     },
     showError: function(val) {
@@ -90,17 +116,37 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapGetters(['problem'])
+  },
   mounted() {
     const _this = this
+    autosize(_this.$refs.askTitle)
     _this.handelMenuAction()
-    _this.$refs.focusBtn.addEventListener('click', val => {
-      _this.$refs.askTitle.focus()
-    })
-    _this.$nextTick(() => {
-      _this.$refs.focusBtn.click()
-    })
+    _this.title = _this.problem.title
+    _this.content = _this.problem.content
+    _this.imgList = _this.problem.imgUrl
+    _this._initSelectDiv()
   },
   methods: {
+    ...mapMutations(['setProblemTitle', 'setProblemTags']),
+    _initSelectDiv() {
+      this.$nextTick(() => {
+        this.selectScroll = new BScroll(this.$refs.selectDiv, {
+          click: true
+        })
+      })
+    },
+    search() {
+      const _this = this
+      Net.search(_this.title).then(res => {
+        console.log(res)
+        _this.searchList = res.data.entities[0].datas
+        res.data.entities[0].datas.filter(item => {
+          item.createTime = item.createTime.substr(5, 5)
+        })
+      })
+    },
     handelMenuAction() {
       const _this = this
       bus.$on('menu4', data => {
@@ -108,6 +154,11 @@ export default {
           _this.showError = true
           return
         }
+        _this.setProblemTitle({
+          title: _this.title,
+          content: _this.content,
+          imgUrl: _this.imgList
+        })
         _this.$router.push('/askTwo')
       })
     },
@@ -205,6 +256,48 @@ export default {
     padding: 15px;
     font-size: 14px;
     border-bottom: 1px solid #f8f8f8;
+    .ask-select {
+      position: absolute;
+      top: 0;
+      left: 15px;
+      right: 15px;
+      background-color: white;
+      border: 1px solid #f8f8f8;
+      box-shadow: 0 4px 16px fade(#1c2438, 20%);
+      z-index: 100;
+      overflow: hidden;
+      // white-space: nowrap;
+      .select-scroll {
+        position: relative;
+        height: 250px;
+        .no-more {
+          text-align: center;
+          margin-top: 10px;
+        }
+        .select-item {
+          position: relative;
+          padding: 15px;
+          border-bottom: 1px solid #f8f8f8;
+          .item-title {
+            color: #333333;
+            font-size: 17px;
+          }
+          .item-desc {
+            color: #a5a5a5;
+            font-size: 14px;
+          }
+        }
+      }
+      .close-scroll {
+        background-color: white;
+        padding: 5px;
+        position: relative;
+        line-height: 20px;
+        text-align: center;
+        color: #80848f;
+        font-size: 14px;
+      }
+    }
     .ask-desc {
       overflow: hidden;
       line-height: 1.5;

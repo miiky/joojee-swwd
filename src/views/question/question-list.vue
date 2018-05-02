@@ -1,41 +1,49 @@
 <template>
   <div class="joo-question">
-    <!-- <Header class="joo-question-header"></Header> -->
     <div class="joo-question-top-card">
       <div class="card-tags">
-        <span class="tag-item" v-for="(item,index) of tagList" :key="index">{{item}}</span>
+        <span class="tag-item" v-for="item of tagList" :key="item.id">{{item.name}}</span>
       </div>
-      <div class="card-title">未按规定开具发票但未少缴税是否也会受处罚？</div>
-      <div class="card-desc" :class="showDescDetail?'':'card-desc-collapse'">酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项，酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项，酒店的住宿价格为280.00元/晚，除此之外，消费者在酒店还有餐饮消费120.00元，房间小酒吧消费60.00元，结算时客户要求将所有消费全部出具项.</div>
+      <div class="card-title">{{title}}</div>
+      <div class="card-desc" :class="showDescDetail?'':'card-desc-collapse'">{{content}}</div>
       <div class="card-imgs" v-show="showDescDetail">
-        <flexbox>
-          <flexbox-item v-for="(item, index) of imgList" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
+        <flexbox v-show="hasImage">
+          <flexbox-item v-for="(item, index) of images" :span="1/3" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
         </flexbox>
       </div>
       <div class="card-collapse" @click="showDescDetail = !showDescDetail">{{showDescDetail?'收起':'展开'}}
         <i class="iconfont" :class="showDescDetail?'icon-shouqi':'icon-zhankai'" style="font-size: 13px;"></i>
       </div>
       <div class="card-footer">
-        <img class="card-avatar" src="https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1031893560,2135917576&fm=27&gp=0.jpg"
-        />
-        <div class="card-name">胡一天</div>
-        <div class="card-others">09-22 • 浏览 59 • 回答 59</div>
+        <img class="card-avatar" :src="creater.profilePicture" />
+        <div class="card-name">{{creater.realname}}</div>
+        <div class="card-others">{{createTime+' • 浏览 '+viewCount+' • 回答 '+replyCount}}</div>
       </div>
     </div>
-    <CardItemAnswer :isBestAdopt="true" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
-      time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
-任何单位和个人不得有下列虚开发票行为" commentNum="5" fabulousNum="12"></CardItemAnswer>
-    <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">精选回答</span>
-    <CardItemAnswer v-for="(item,index) of 5" :key="index" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
-      time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
-任何单位和个人不得有下列虚开发票行为" commentNum="5" fabulousNum="12"></CardItemAnswer>
-    <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">其他回答</span>
-    <CardItemAnswer v-for="(item,index) of 10" :key="index+100" name="张三" avatar="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2809576112,626361756&fm=27&gp=0.jpg"
-      time="04-08" answer="一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。
-任何单位和个人不得有下列虚开发票行为" commentNum="5" fabulousNum="12"></CardItemAnswer>
+    <div class="no-reply" v-if="hasAnyCommont">
+      <img src="@/assets/imgs/no-content.png" />
+      <p>暂无评论</p>
+    </div>
+    <div v-if="bestReply.length != 0">
+      <CardItemAnswer :isBestAdopt="true" v-for="item of bestReply" :key="item.id" :id="item.id" :name="item.replyer.realname"
+        :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
+        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" @upPost="upPost"></CardItemAnswer>
+    </div>
+    <div v-if="goodReply.length != 0">
+      <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">精选回答</span>
+      <CardItemAnswer v-for="item of goodReply" :key="item.id" :id="item.id" :name="item.replyer.realname" :avatar="item.replyer.profilePicture"
+        :time="item.createTime" :answer="item.content" :commentNum="item.commentCount" :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost"
+        @upPost="upPost"></CardItemAnswer>
+    </div>
+    <div v-if="otherReply.length != 0" style="padding-bottom:50px;">
+      <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">其他回答</span>
+      <CardItemAnswer v-for="item of otherReply" :key="item.id" :id="item.id" :name="item.replyer.realname" :avatar="item.replyer.profilePicture"
+        :time="item.createTime" :answer="item.content" :commentNum="item.commentCount" :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost"
+        @upPost="upPost"></CardItemAnswer>
+    </div>
     <Footer class="joo-question-footer">
       <template slot="content">
-        <div class="joo-collect" @click="collect">
+        <div class="joo-collect" @click="collect" :class="isCollect?'animated pulse':''">
           <i class="iconfont" :class="isCollect?'icon-shoucang3 collect-icon':'icon-shoucang4'"></i>
           <span> {{collectNum}}人收藏</span>
         </div>
@@ -53,8 +61,13 @@
 import Header from '@/views/commons/header.vue'
 import Footer from '@/views/commons/footer.vue'
 import CardItemAnswer from '@/views/commons/card-item-answer.vue'
-import MyScroll from '@/views/commons/my-scroll.vue'
+// import MyScroll from '@/views/commons/my-scroll.vue'
+import * as Net from '@/network/index'
+import * as Utils from '@/utils/index'
+import bus from '@/utils/bus'
+
 import { Previewer, TransferDom } from 'vux'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 
 import 'animate.css'
 
@@ -67,21 +80,27 @@ export default {
     Previewer,
     Header,
     Footer,
-    CardItemAnswer,
-    MyScroll
+    CardItemAnswer
   },
   data() {
     return {
+      problemId: null,
       data: [],
       isCollect: false,
-      collectNum: 13,
-      showDescDetail: false,
-      tagList: ['增值税', '流通', '价外税', '开具发票'],
-      imgList: [
-        'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3802506693,1778634825&fm=27&gp=0.jpg',
-        'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1224306677,1730366661&fm=27&gp=0.jpg',
-        'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3057512949,2471002942&fm=27&gp=0.jpg'
-      ],
+      collectNum: 0,
+      showDescDetail: true,
+      tagList: [],
+      title: '',
+      content: '',
+      hasImage: false,
+      images: [],
+      createTime: '00-00',
+      viewCount: 0,
+      replyCount: 0,
+      creater: { profilePicture: '', realname: '' },
+      bestReply: [],
+      goodReply: [],
+      otherReply: [],
       options: {
         getThumbBoundsFn(index) {
           let thumbnail = document.querySelectorAll('.img-item')[index]
@@ -94,21 +113,85 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(['sessionKey']),
     previewImgs: function() {
       let list = []
-      this.imgList.forEach(element => {
+      this.images.forEach(element => {
         list.push({
           msrc: element,
           src: element
         })
       })
       return list
+    },
+    hasAnyCommont: function() {
+      return (
+        this.bestReply.length +
+          this.goodReply.length +
+          this.otherReply.length ===
+        0
+      )
     }
   },
   mounted() {
-    console.log(this.$route.params.id)
+    const _this = this
+    _this.problemId = this.$route.params.id
+    _this._handelMenuAction()
+    _this._getProblem()
+    _this._listReplys()
   },
   methods: {
+    ...mapMutations(['setAnswer']),
+    ...mapActions(['showPopupAction']),
+    _handelMenuAction() {
+      const _this = this
+      bus.$on('menu3', data => {
+        // TODO 分享
+        sqt.shareAll({
+          url: 'https://static.joojee.cn/swwd/question/' + _this.problemId, // 分享网页地址
+          title: '税企通 | ' + _this.title + '【税务问答】', // 标题
+          // descr: _this.title, // 摘要
+          // icon: "", // 分享图标
+          success: function(res) {},
+          cancel: function(res) {}
+        })
+      })
+    },
+    async _getProblem() {
+      const _this = this
+      await Net.getProblem(_this.problemId).then(res => {
+        res = res.data.entities[0]
+        console.log('problem', res)
+        _this.title = res.title
+        _this.content = res.content
+        _this.creater = res.creater
+        _this.hasImage = res.hasImage
+        _this.images = res.images
+        _this.createTime = res.createTime.split(' ')[0]
+        _this.viewCount = res.viewCount
+        _this.replyCount = res.replyCount
+        _this.tagList =
+          res.tags.length !== 0 ? res.tags : [{ name: '无标签', id: 1 }]
+        _this.collectNum = res.collectCount
+        _this.isCollect = res.hasCollect
+      })
+    },
+    async _listReplys() {
+      const _this = this
+      await Net.listReplys(_this.problemId).then(res => {
+        console.log('_listReplys', res)
+        res = res.data.entities
+        res.forEach(e => {
+          if (e.replyType == '2') {
+            _this.bestReply.push(e)
+          } else if (e.replyType == '1') {
+            _this.goodReply.push(e)
+          } else {
+            _this.otherReply.push(e)
+          }
+        })
+      })
+    },
     loadMore() {
       console.log('loadMore')
     },
@@ -116,7 +199,19 @@ export default {
       console.log('loadData')
     },
     toAnswer() {
-      this.$router.push('/answer')
+      const _this = this
+      if (_this.sessionKey == '') {
+        Utils.oauth()
+        return
+      }
+      _this.setAnswer({
+        id: _this.problemId,
+        title: _this.title
+      })
+      this.$router.push({
+        name: 'answer',
+        params: { userId: `${this.problemId}` }
+      })
     },
     logIndexChange(e) {
       //隐藏fullscreen按钮
@@ -131,11 +226,20 @@ export default {
     },
     collect() {
       if (this.isCollect) {
+        Net.cancelCollectProblem(this.problemId)
         this.collectNum--
       } else {
+        Net.collectProblem(this.problemId)
         this.collectNum++
       }
       this.isCollect = !this.isCollect
+    },
+    upPost(item) {
+      if (item.hasUpPost) {
+        Net.upReply(item.id)
+      } else {
+        Net.cancelUpReply(item.id)
+      }
     }
   }
 }
@@ -146,14 +250,12 @@ export default {
 }
 .joo-question {
   background-color: #f5f5f5;
-  padding-bottom: 46px;
-  .joo-question-header {
-    position: fixed;
-    width: 100%;
-    height: auto;
-    overflow-y: auto;
-    z-index: 9999;
-  }
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding-bottom: 50px;
   .joo-question-top-card {
     background-color: white;
     padding: 10px 15px 15px 15px;
@@ -195,6 +297,7 @@ export default {
     .card-imgs {
       margin-top: 10px;
       .img-item {
+        height: 100px;
         width: 100%;
       }
     }
@@ -242,6 +345,18 @@ export default {
       width: 60%;
       background-color: #1985c4;
       float: left;
+    }
+  }
+  .no-reply {
+    text-align: center;
+    padding: 5rem;
+    background-color: white;
+    img {
+      width: 127px;
+    }
+    p {
+      color: #a5a5a5;
+      font-size: 15px;
     }
   }
 }

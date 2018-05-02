@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "animate.css": "^3.6.1",
+    "autosize": "^4.0.1",
     "babel-plugin-array-includes": "^2.0.3",
     "better-scroll": "^1.9.1",
+    "cube-ui": "^1.8.3",
     "es6-promise": "^4.2.4",
     "fastclick": "^1.0.6",
     "hammerjs": "^2.0.8",
@@ -63,7 +65,20 @@
     "portfinder": "^1.0.13",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.9.1",
-    "webpack-merge": "^4.1.0"
+    "webpack-merge": "^4.1.0",
+    "webpack-transform-modules-plugin": "^0.3.1"
+  },
+  "transformModules": {
+    "cube-ui": {
+      "transform": "cube-ui/lib/${member}",
+      "kebabCase": true,
+      "style": {
+        "ignore": [
+          "create-api",
+          "better-scroll"
+        ]
+      }
+    }
   },
   "engines": {
     "node": ">= 4.0.0",

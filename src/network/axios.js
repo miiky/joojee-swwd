@@ -1,5 +1,6 @@
 import axios from 'axios'
 import store from '@/store/index'
+import { md5 } from 'vux'
 
 const Axios = axios.create()
 
@@ -27,7 +28,7 @@ Axios.defaults.transformRequest = [
 Axios.interceptors.request.use(
   config => {
     //get请求url参数拼接
-    let payload = config.method + config.url
+    let payload = md5(config.method + config.url)
     //全局请求状态管理入栈
     store.commit('pushRequest', payload)
     return config
@@ -42,15 +43,76 @@ Axios.interceptors.request.use(
 Axios.interceptors.response.use(
   response => {
     let config = response.config
-    let payload = config.method + config.url
+    let payload = md5(config.method + config.url)
     //全局请求状态管理出栈
     store.commit('popRequest', payload)
     // 对响应数据做点什么
     return response
   },
-  error => {
+  err => {
+    if (err && err.response) {
+      switch (err.response.status) {
+        case 400:
+          err.message = '请求错误'
+          // let config = err.response.config
+          // let payload = md5(config.method + config.url)
+          // store.commit('popRequest', payload)
+          // return err.response
+          break
+
+        case 401:
+          err.message = '未授权，请登录'
+          break
+
+        case 403:
+          err.message = '拒绝访问'
+          break
+
+        case 404:
+          err.message = `请求地址出错: ${err.response.config.url}`
+          break
+
+        case 408:
+          err.message = '请求超时'
+          break
+
+        case 500:
+          err.message = '服务器内部错误'
+          break
+
+        case 501:
+          err.message = '服务未实现'
+          break
+
+        case 502:
+          err.message = '网关错误'
+          break
+
+        case 503:
+          err.message = '服务不可用'
+          break
+
+        case 504:
+          err.message = '网关超时'
+          break
+
+        case 505:
+          err.message = 'HTTP版本不受支持'
+          break
+      }
+      let payload = md5(err.response.config.method + err.response.config.url)
+      store.commit('popRequest', payload)
+      store.dispatch('showPopupAction', { type: false, msg: err.message })
+    } else {
+      store.commit('clearRequest')
+      store.dispatch('showPopupAction', {
+        type: false,
+        msg: '服务器异常',
+        time: 3000
+      })
+    }
     // 对响应错误做点什么
-    return Promise.reject(error)
+    return Promise.reject(err)
   }
 )
 

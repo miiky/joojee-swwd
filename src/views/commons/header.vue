@@ -26,17 +26,18 @@ export default {
 </script>
 <style lang="less" scoped>
 .joo-header {
+  position: relative;
   height: 48px;
   text-align: center;
   line-height: 48px;
   font-size: 18px;
-  background-color: #1985c4;
-  color: white;
+  background-color: white;
+  color: #000;
   .joo-back {
     position: absolute;
     top: 0;
     left: 15px;
-    color: white;
+    color: #000;
     i {
       line-height: 48px;
     }
@@ -45,7 +46,7 @@ export default {
     position: absolute;
     top: 0;
     right: 10px;
-    color: white;
+    color: #000;
     i {
       line-height: 48px;
       padding-right: 5px;

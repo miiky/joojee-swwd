@@ -1,14 +1,16 @@
 <template>
+  <!-- <router-link :to="{ name: 'discuss', params: { id: `${id}` }}"> -->
   <div class="joo-discuss-card">
     <p class="joo-card-title">{{title}}</p>
-    <p class="joo-card-desc">{{desc}}</p>
+    <p class="joo-card-desc">{{desc}}人参与讨论</p>
     <img class="joo-card-tag" src="@/assets/imgs/hot.png" />
   </div>
+  <!-- </router-link> -->
 </template>
 
 <script>
 export default {
-  props: ['title', 'desc']
+  props: ['title', 'desc', 'id']
 }
 </script>
 <style lang="less" scoped>
@@ -21,6 +23,8 @@ export default {
   width: 250px;
   padding: 30px 10px 10px 10px;
   .joo-card-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: 14px;
     font-weight: 500;
     color: #1c2438;

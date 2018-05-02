@@ -1,21 +1,61 @@
 <template>
-    <div class="joo-card-item">
-        <img class="item-avatar" src="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3802506693,1778634825&fm=27&gp=0.jpg"
-        />
-        <div class="item-content">
-            <div class="item-top">
-                <div class="item-name">大梁</div>
-                <div class="item-fabulous"><i class="iconfont icon-dianzan"></i></div>
-            </div>
-            <div class="item-desc">公司的资金进出有很多情况，不一定是收入即便是收入，也不一定要交税开票。</div>
-            <div class="item-time">11-22 17:00
-                <div class="item-answer">回复</div>
-            </div>
-        </div>
+  <div class="joo-card-item">
+    <img class="item-avatar" :src="avatar" />
+    <div class="item-content">
+      <div class="item-top">
+        <div class="item-name">{{name}}</div>
+        <div class="item-fabulous" @click="upReply"><i class="iconfont icon-dianzan" :class="isReply?'isreply':''"></i></div>
+      </div>
+      <div class="item-desc">{{content}}</div>
+      <div class="item-time">{{time}}
+        <!-- <div class="item-answer">回复</div> -->
+      </div>
     </div>
+  </div>
 </template>
 <script>
-export default {}
+export default {
+  data() {
+    return {
+      isReply: false
+    }
+  },
+  props: {
+    id: {
+      type: Number,
+      required: true
+    },
+    avatar: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    },
+    content: {
+      type: String,
+      required: true
+    },
+    time: {
+      type: String,
+      required: true
+    },
+    hasUpPost: {
+      type: Boolean,
+      required: true
+    }
+  },
+  mounted() {
+    this.isReply = this.hasUpPost
+  },
+  methods: {
+    upReply() {
+      this.isReply = !this.isReply
+      this.$emit('upReply', { isReply: this.isReply, id: this.id })
+    }
+  }
+}
 </script>
 <style lang="less" scoped>
 .joo-card-item {
@@ -42,6 +82,9 @@ export default {}
       .item-fabulous {
         color: #c0c3c8;
         float: right;
+        .isreply {
+          color: #1985c4;
+        }
       }
     }
     .item-desc {

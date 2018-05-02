@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="{ name: 'question', params: { id: 123 }}">
+  <router-link :to="{ name: 'question', params: { id: `${id}` }}">
     <div class="joo-card-item">
       <template v-if="needHeader">
         <div class="item-header">
@@ -10,8 +10,8 @@
         <div class="item-action">{{ acitonType| toActionName }}</div>
       </template>
       <div class="item-title">{{title}}</div>
-      <div class="item-desc" v-show="tagType != 3">
-        <img class="item-tag-img" :src="tagImgUrl" />{{answer}}
+      <div class="item-desc">
+        <img v-show="showTag" class="item-tag-img" :src="tagImgUrl" />{{answer}}
       </div>
       <div class="item-footer">
         <span class="item-tag" v-for="item of tagList" :key="item.id">{{item.name}}</span>
@@ -24,6 +24,10 @@
 <script>
 export default {
   props: {
+    id: {
+      type: [Number, String],
+      require: true
+    },
     needHeader: {
       type: Boolean,
       default: false
@@ -77,7 +81,12 @@ export default {
     },
     tagImgUrl: function() {
       const _this = this
-      return _this.tagType == 0 ? _this.selection : _this.adopt
+      //0、普通， 1、精选， 2、采纳
+      return _this.tagType == 1 ? _this.selection : _this.adopt
+    },
+    showTag: function() {
+      const _this = this
+      return _this.tagType == 1 || _this.tagType == 2
     }
   },
   filters: {

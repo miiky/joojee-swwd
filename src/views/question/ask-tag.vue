@@ -2,14 +2,14 @@
   <div class="joo-ask-tag">
     <div class="select-tags">
       <p v-show="chooseList.length == 0">点击以下标签进行添加</p>
-      <button class="tag" v-for="(item,index) of chooseList" :key="index">{{item}}
+      <button class="tag" v-for="item of chooseList" :key="item.id">{{item.name}}
         <div class="del-tag" @click="delTag(index)"><i class="iconfont icon-shanchuxian"></i></div>
       </button>
     </div>
     <div class="choose-tags">
       <div class="tags-title">全部标签</div>
       <div class="tags-list">
-        <button class="tag" v-for="(item,index) of tagList" :key="index" @click="choose(item)">{{item}}
+        <button class="tag" v-for="item of tagList" :key="item.id" @click="choose(item)">{{item.name}}
         </button>
       </div>
     </div>
@@ -25,6 +25,8 @@
 <script>
 import { TransferDom, Popup } from 'vux'
 import bus from '@/utils/bus'
+import { mapGetters, mapMutations } from 'vuex'
+import * as Net from '@/network/index'
 
 export default {
   directives: {
@@ -41,6 +43,9 @@ export default {
         }, 1500)
       }
     }
+  },
+  computed: {
+    ...mapGetters(['problem'])
   },
   data() {
     return {
@@ -60,22 +65,25 @@ export default {
     }
   },
   mounted() {
-    this.handelMenuAction()
+    this._handelMenuAction()
+    this._initTags()
   },
   methods: {
-    handelMenuAction() {
+    ...mapMutations(['clearProblem']),
+    _handelMenuAction() {
       const _this = this
       bus.$on('menu5', data => {
         if (_this.chooseList.length === 0) {
           _this.showPopup = true
           return
         }
-        _this.popupType = true
-        _this.popupMsg = ' 发布成功！'
-        _this.showPopup = true
-        setTimeout(() => {
-          _this.$router.push('/')
-        }, 1500)
+        _this.submit()
+      })
+    },
+    async _initTags() {
+      const _this = this
+      await Net.listProblemTags().then(res => {
+        _this.tagList = res.data.entities
       })
     },
     choose(item) {
@@ -90,6 +98,30 @@ export default {
     },
     setTitle() {
       document.title = '添加标签（' + this.chooseList.length + '/4）'
+    },
+    submit() {
+      const _this = this
+      _this.popupType = true
+      _this.popupMsg = ' 发布成功！'
+      _this.showPopup = true
+
+      let title = _this.problem.title
+      let content = _this.problem.content
+      let imgUrl = []
+      _this.problem.imgUrl.forEach(item => {
+        imgUrl.push(item.picUrl)
+      })
+      let problemTags = []
+      _this.chooseList.forEach(item => {
+        problemTags.push(item.id)
+      })
+      _this.clearProblem()
+      Net.submitProblem(title, content, problemTags, imgUrl).then(res => {
+        console.log(res)
+      })
+      setTimeout(() => {
+        _this.$router.push('/')
+      }, 1500)
     }
   }
 }

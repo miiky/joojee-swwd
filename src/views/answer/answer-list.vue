@@ -1,33 +1,38 @@
 <template>
   <div class="joo-answer">
     <!-- <Header class="joo-answer-header"></Header> -->
-    <div class="joo-answer-title">未按规定开具发票但未少缴税是否也会受处罚？</div>
+    <div class="joo-answer-title">{{problemTitle}}</div>
     <div class="joo-answer-card">
       <div class="card-top">
-        <img class="top-avatar" src="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3802506693,1778634825&fm=27&gp=0.jpg"
-        />
+        <img class="top-avatar" :src="profilePicture" />
         <div class="top-text">
-          <p class="top-name">张么么</p>
-          <p class="top-desc">资深会计</p>
+          <p class="top-name">{{realname}}</p>
+          <p class="top-desc">{{selfIntroduction}}</p>
         </div>
-        <div v-show="!isFollow" class="top-follow" @click="isFollow = !isFollow">+ 关注</div>
-        <div v-show="isFollow" class="top-followed" @click="isFollow = !isFollow">已关注</div>
+        <div v-if="!isSelf">
+          <img class="top-follow" @click="follow" :src="!isFollow?`${followPic}`:`${unfollowPic}`" />
+        </div>
       </div>
-      <div class="card-desc">一、《发票管理办法》第二十二条规定，开具发票应当按照规定的时限、顺序、栏目，全部联次一次性如实开具，并加盖发票专用章。 任何单位和个人不得有下列虚开发票行为： （一）为他人、为自己开具与实际经营业务情况不符的发票； （二）让他人为自己开具与实际经营业务情况不符的发票；
-        （三）介绍他人开具与实际经营业务情况不符的发票。《国家税务总局关于增值税发票开具有关问题的公告》。
-      </div>
-      <div class="card-imgs">
+      <div class="card-desc">{{content}}</div>
+      <div class="card-imgs" v-if="hasImage">
         <flexbox>
-          <flexbox-item v-for="(item, index) of imgList" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
+          <flexbox-item v-for="(item, index) of images" :span="1/3" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
         </flexbox>
       </div>
       <div class="card-footer">
-        <div class="card-time">2018-09-22</div>
+        <div class="card-time">{{createTime}}</div>
       </div>
     </div>
-    <div class="joo-comment">
+    <div class="joo-comment" v-if="commentList.length != 0">
       <div class="joo-comment-top">全部评论</div>
-      <CardItemAnswer v-for="(item,index) of 5" :key="index"></CardItemAnswer>
+      <CardItemComment v-for="item of commentList" :key="item.id" :id="item.id" :avatar="item.commenter.profilePicture" :content="item.content"
+        :hasUpPost="item.hasUpPost" :name="item.commenter.realname" :time="item.createTime" @upReply="upReply"></CardItemComment>
+    </div>
+    <div class="joo-comment" v-if="commentList.length == 0">
+      <div class="no-content">
+        <img class="no-content-pic" src="@/assets/imgs/no-content.png" />
+        <p class="no-content-text">暂无评论</p>
+      </div>
     </div>
     <Footer class="joo-answer-footer" v-if="!isInput">
       <template slot="content">
@@ -35,18 +40,15 @@
           <div>
             <div class="input-comment" @click="writeComment">写评论...</div>
             <div class="input-right">
-              <i class="iconfont icon-pinglun3" style="margin-right:5px;margin-top: -1px;vertical-align: middle;display: inline-block;font-size:20px;"></i>12
-              <i class="iconfont icon-dianzanxiankuang" style="margin-right:20px;margin-left:10px;font-size:20px;"></i>
+              <i class="iconfont icon-pinglun3" style="margin-right:5px;margin-top: -1px;vertical-align: middle;display: inline-block;font-size:20px;"></i>{{commentCount}}
+              <i class="iconfont icon-dianzanxiankuang" :class="hasUpPost?'upPost':''" style="margin-right:20px;margin-left:10px;font-size:20px;"
+                @click="upPost"></i>
             </div>
           </div>
-
         </div>
       </template>
     </Footer>
-    <div v-show="isInput" class="joo-input">
-      <input id="collectInput" ref="collectInput" class="collect-input" v-model="comment" autocomplete="off" autocapitalize="off"
-        autocorrect="off" spellcheck="false" type="textarea" placeholder="写评论..." @focus="focus" @blur="blur" /><span class="collect-send">发送</span>
-    </div>
+    <miiky-textarea v-if="isInput" @submit="sendComment"></miiky-textarea>
 
     <div v-transfer-dom>
       <previewer :list="previewImgs" ref="previewer" :options="options" @on-index-change="logIndexChange"></previewer>
@@ -57,8 +59,15 @@
 <script>
 import Header from '@/views/commons/header.vue'
 import Footer from '@/views/commons/footer.vue'
-import CardItemAnswer from '@/views/commons/card-item-comment.vue'
+import CardItemComment from '@/views/commons/card-item-comment.vue'
+import MiikyTextarea from '@/views/commons/miiky-textarea.vue'
+
+import bus from '@/utils/bus'
+import * as Net from '@/network/index'
+import * as Utils from '@/utils/index'
+
 import { Previewer, TransferDom, XInput } from 'vux'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 
 export default {
   name: 'answer',
@@ -69,14 +78,33 @@ export default {
     Previewer,
     Header,
     Footer,
-    CardItemAnswer,
-    XInput
+    CardItemComment,
+    XInput,
+    MiikyTextarea
   },
   data() {
     return {
+      replyId: 0,
+      problemId: 0,
+      problemTitle: '',
+      profilePicture: '',
+      problemCreaterId: 0,
+      realname: '',
+      replyerId: 0,
+      selfIntroduction: '',
+      hasImage: false,
+      hasUpPost: false,
+      images: [],
+      content: '',
+      createTime: '',
+      commentCount: 0,
+
       isInput: false,
+      onceInput: true,
       comment: '',
       isFollow: false,
+      followPic: require('@/assets/imgs/follow.png'),
+      unfollowPic: require('@/assets/imgs/unfollow.png'),
       imgList: [
         'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3802506693,1778634825&fm=27&gp=0.jpg',
         'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1224306677,1730366661&fm=27&gp=0.jpg',
@@ -90,25 +118,157 @@ export default {
           let rect = thumbnail.getBoundingClientRect()
           return { x: rect.left, y: rect.top + pageYScroll, w: rect.width }
         }
-      }
+      },
+
+      commentList: [],
+      pageNo: 1,
+      pageSize: 20
     }
   },
   computed: {
+    ...mapGetters(['userId', 'sessionKey']),
     previewImgs: function() {
       let list = []
-      this.imgList.forEach(element => {
+      if (this.images.length == 0) {
+        return list
+      }
+      this.images.forEach(element => {
         list.push({
           msrc: element,
           src: element
         })
       })
       return list
+    },
+    isSelf: function() {
+      const _this = this
+      return _this.userId == _this.replyerId
     }
   },
-  mounted() {
+  async mounted() {
     const _this = this
+    _this.replyId = this.$route.params.id
+    _this._handelMenuAction()
+    await _this._getReply()
+    await _this._listComments(_this.pageNo)
   },
   methods: {
+    ...mapActions(['showPopupAction']),
+    _handelMenuAction() {
+      const _this = this
+      bus.$on('menu6', data => {
+        // TODO 分享
+        sqt.shareAll({
+          url: 'https://static.joojee.cn/swwd/answer/' + _this.replyId, // 分享网页地址
+          title: '税企通 | ' + _this.problemTitle + '【税务问答】', // 标题
+          // descr: _this.problemTitle, // 摘要
+          // icon: "", // 分享图标
+          success: function(res) {},
+          cancel: function(res) {}
+        })
+      })
+      bus.$on('menu7', data => {
+        // TODO 举报
+        _this.showPopupAction({
+          type: false,
+          msg: '功能即将开放！'
+        })
+      })
+      bus.$on('menu8', data => {
+        // TODO 采纳
+        if (_this.userId != _this.problemCreaterId) {
+          _this.showPopupAction({
+            type: false,
+            msg: '您没有权限操作！'
+          })
+          return
+        }
+        Net.setBestReply(_this.problemId, _this.replyId).then(res => {
+          _this.showPopupAction({
+            type: true,
+            msg: '当前答案已设置为最佳采纳！'
+          })
+        })
+      })
+    },
+    async _getReply() {
+      const _this = this
+      await Net.getReply(_this.replyId).then(res => {
+        console.log(res.data.entities)
+        res = res.data.entities[0]
+        _this.replyId = res.id
+        _this.problemId = res.problemId
+        _this.problemTitle = res.problemTitle
+        _this.problemCreaterId = res.problemCreaterId
+        _this.profilePicture = res.replyer.profilePicture
+        _this.realname = res.replyer.realname
+        _this.replyerId = res.replyer.id
+        _this.isFollow = res.replyer.hasAttent
+        _this.selfIntroduction = res.replyer.selfIntroduction || '暂无'
+        _this.hasImage = res.hasImage
+        _this.hasUpPost = res.hasUpPost
+        _this.images = res.images
+        _this.content = res.content
+        _this.createTime = res.createTime
+        _this.commentCount = res.commentCount
+      })
+    },
+    async _listComments(pageNo) {
+      const _this = this
+      await Net.listComments(
+        _this.problemId,
+        _this.replyId,
+        pageNo,
+        _this.pageSize
+      ).then(res => {
+        res = res.data.entities
+        console.log(res)
+        if (pageNo == 1) {
+          _this.commentList = res
+        } else {
+          _this.commentList = [..._this.commentList, ...res]
+        }
+      })
+    },
+    sendComment(item) {
+      const _this = this
+      if (_this.sessionKey == '') {
+        Utils.oauth()
+        return
+      }
+      Net.submitComment(_this.problemId, _this.replyId, item.content).then(
+        res => {
+          _this._listComments(1)
+          _this.isInput = false
+        }
+      )
+    },
+    follow() {
+      const _this = this
+      if (_this.isFollow) {
+        Net.cancelAttentUser(_this.replyerId)
+        _this.isFollow = false
+      } else {
+        Net.attentUser(_this.replyerId)
+        _this.isFollow = true
+      }
+    },
+    upReply(item) {
+      console.log('upReply', item)
+      if (item.isReply) {
+        Net.upReply(item.id)
+      } else {
+        Net.cancelUpReply(item.id)
+      }
+    },
+    upPost() {
+      this.hasUpPost = !this.hasUpPost
+      if (this.hasUpPost) {
+        Net.upReply(this.replyId)
+      } else {
+        Net.cancelUpReply(this.replyId)
+      }
+    },
     scrollToEnd() {
       setTimeout(() => {
         document.body.scrollTop = document.body.scrollHeight
@@ -123,16 +283,6 @@ export default {
     writeComment() {
       const _this = this
       _this.isInput = true
-      _this.scrollToEnd()
-      setTimeout(() => {
-        _this.$refs.collectInput.focus()
-      }, 300)
-    },
-    focus() {
-      this.scrollToEnd()
-    },
-    blur() {
-      this.isInput = false
     }
   }
 }
@@ -182,11 +332,7 @@ export default {
       }
       .top-follow {
         float: right;
-        border: 1px solid #1885c4;
-        color: #1885c4;
-        border-radius: 4px;
-        font-size: 14px;
-        padding: 3px 10px;
+        height: 30px;
       }
       .top-followed {
         float: right;
@@ -228,6 +374,18 @@ export default {
       color: #333333;
       font-size: 15px;
     }
+    .no-content {
+      text-align: center;
+      .no-content-pic {
+        margin-top: 5rem;
+        width: 127px;
+      }
+      .no-content-text {
+        color: #a5a5a5;
+        font-size: 15px;
+        margin-bottom: 5rem;
+      }
+    }
   }
   .joo-answer-footer {
     border-top: 1px solid #ebebeb;
@@ -246,6 +404,9 @@ export default {
         float: right;
         color: #686869;
         font-size: 13px;
+        .upPost {
+          color: #1985c4;
+        }
       }
     }
   }
