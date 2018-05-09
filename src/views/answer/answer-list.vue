@@ -10,12 +10,12 @@
           <p class="top-desc">{{selfIntroduction}}</p>
         </div>
         <div v-if="!isSelf">
-          <img class="top-follow" @click="follow" :src="!isFollow?`${followPic}`:`${unfollowPic}`" />
+          <img class="top-follow" @click="follow" :src="!isFollow?followPic:unfollowPic" />
         </div>
       </div>
       <div class="card-desc">{{content}}</div>
       <div class="card-imgs" v-if="hasImage">
-        <flexbox>
+        <flexbox :gutter="0">
           <flexbox-item v-for="(item, index) of images" :span="1/3" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
         </flexbox>
       </div>
@@ -48,7 +48,7 @@
         </div>
       </template>
     </Footer>
-    <miiky-textarea v-if="isInput" @submit="sendComment"></miiky-textarea>
+    <miiky-textarea v-if="isInput" @submit="sendComment" :maxLength="500"></miiky-textarea>
 
     <div v-transfer-dom>
       <previewer :list="previewImgs" ref="previewer" :options="options" @on-index-change="logIndexChange"></previewer>
@@ -61,10 +61,6 @@ import Header from '@/views/commons/header.vue'
 import Footer from '@/views/commons/footer.vue'
 import CardItemComment from '@/views/commons/card-item-comment.vue'
 import MiikyTextarea from '@/views/commons/miiky-textarea.vue'
-
-import bus from '@/utils/bus'
-import * as Net from '@/network/index'
-import * as Utils from '@/utils/index'
 
 import { Previewer, TransferDom, XInput } from 'vux'
 import { mapGetters, mapMutations, mapActions } from 'vuex'
@@ -149,6 +145,7 @@ export default {
     const _this = this
     _this.replyId = this.$route.params.id
     _this._handelMenuAction()
+
     await _this._getReply()
     await _this._listComments(_this.pageNo)
   },
@@ -156,7 +153,7 @@ export default {
     ...mapActions(['showPopupAction']),
     _handelMenuAction() {
       const _this = this
-      bus.$on('menu6', data => {
+      _this.$bus.$on('menu6', data => {
         // TODO 分享
         sqt.shareAll({
           url: 'https://static.joojee.cn/swwd/answer/' + _this.replyId, // 分享网页地址
@@ -167,14 +164,14 @@ export default {
           cancel: function(res) {}
         })
       })
-      bus.$on('menu7', data => {
+      _this.$bus.$on('menu7', data => {
         // TODO 举报
         _this.showPopupAction({
           type: false,
           msg: '功能即将开放！'
         })
       })
-      bus.$on('menu8', data => {
+      _this.$bus.$on('menu8', data => {
         // TODO 采纳
         if (_this.userId != _this.problemCreaterId) {
           _this.showPopupAction({
@@ -183,7 +180,7 @@ export default {
           })
           return
         }
-        Net.setBestReply(_this.problemId, _this.replyId).then(res => {
+        _this.$net.setBestReply(_this.problemId, _this.replyId).then(res => {
           _this.showPopupAction({
             type: true,
             msg: '当前答案已设置为最佳采纳！'
@@ -193,7 +190,7 @@ export default {
     },
     async _getReply() {
       const _this = this
-      await Net.getReply(_this.replyId).then(res => {
+      await _this.$net.getReply(_this.replyId).then(res => {
         console.log(res.data.entities)
         res = res.data.entities[0]
         _this.replyId = res.id
@@ -215,58 +212,67 @@ export default {
     },
     async _listComments(pageNo) {
       const _this = this
-      await Net.listComments(
-        _this.problemId,
-        _this.replyId,
-        pageNo,
-        _this.pageSize
-      ).then(res => {
-        res = res.data.entities
-        console.log(res)
-        if (pageNo == 1) {
-          _this.commentList = res
-        } else {
-          _this.commentList = [..._this.commentList, ...res]
-        }
-      })
+      await _this.$net
+        .listComments(_this.problemId, _this.replyId, pageNo, _this.pageSize)
+        .then(res => {
+          res = res.data.entities
+          console.log(res)
+          if (pageNo == 1) {
+            _this.commentList = res
+          } else {
+            _this.commentList = [..._this.commentList, ...res]
+          }
+        })
     },
     sendComment(item) {
       const _this = this
-      if (_this.sessionKey == '') {
-        Utils.oauth()
+      if (_this.$utils.isEmpty(_this.sessionKey)) {
+        _this.$utils.oauth()
         return
       }
-      Net.submitComment(_this.problemId, _this.replyId, item.content).then(
-        res => {
+      _this.$net
+        .submitComment(_this.problemId, _this.replyId, item.content)
+        .then(res => {
           _this._listComments(1)
           _this.isInput = false
-        }
-      )
+        })
     },
     follow() {
       const _this = this
+      if (_this.$utils.isEmpty(this.sessionKey)) {
+        _this.$utils.oauth()
+        return
+      }
       if (_this.isFollow) {
-        Net.cancelAttentUser(_this.replyerId)
+        _this.$net.cancelAttentUser(_this.replyerId)
         _this.isFollow = false
       } else {
-        Net.attentUser(_this.replyerId)
+        _this.$net.attentUser(_this.replyerId)
         _this.isFollow = true
       }
     },
     upReply(item) {
+      if (_this.$utils.isEmpty(this.sessionKey)) {
+        _this.$utils.oauth()
+        return
+      }
       console.log('upReply', item)
       if (item.isReply) {
-        Net.upReply(item.id)
+        _this.$net.upReply(item.id)
       } else {
-        Net.cancelUpReply(item.id)
+        _this.$net.cancelUpReply(item.id)
       }
     },
     upPost() {
+      if (_this.$utils.isEmpty(this.sessionKey)) {
+        _this.$utils.oauth()
+        return
+      }
       this.hasUpPost = !this.hasUpPost
       if (this.hasUpPost) {
-        Net.upReply(this.replyId)
+        _this.$net.upReply(this.replyId)
       } else {
-        Net.cancelUpReply(this.replyId)
+        _this.$net.cancelUpReply(this.replyId)
       }
     },
     scrollToEnd() {
@@ -310,6 +316,7 @@ export default {
     padding: 15px 15px 15px 15px;
     margin-bottom: 10px;
     .card-top {
+      position: relative;
       height: 50px;
       width: 100%;
       .top-avatar {
@@ -319,6 +326,7 @@ export default {
         border-radius: 50%;
       }
       .top-text {
+        width: 70%;
         float: left;
         padding-left: 10px;
         .top-name {
@@ -328,29 +336,33 @@ export default {
         .top-desc {
           color: #a5a5a5;
           font-size: 13px;
+          text-overflow: -o-ellipsis-lastline;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
         }
       }
       .top-follow {
-        float: right;
+        position: absolute;
+        right: 0;
+        top: 0;
         height: 30px;
-      }
-      .top-followed {
-        float: right;
-        background-color: #ececec;
-        color: #a5a5a5;
-        border-radius: 4px;
-        font-size: 14px;
-        padding: 3px 10px;
       }
     }
     .card-desc {
+      position: relative;
       color: #333333;
       font-size: 16px;
     }
     .card-imgs {
       margin-top: 10px;
       .img-item {
-        width: 100%;
+        position: relative;
+        width: 95%;
+        height: 100px;
+        border-radius: 3px;
       }
     }
     .card-footer {

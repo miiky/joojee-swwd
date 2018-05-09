@@ -25,21 +25,21 @@
       <p>暂无评论</p>
     </div>
     <div v-if="bestReply.length != 0">
-      <CardItemAnswer :isBestAdopt="true" v-for="item of bestReply" :key="item.id" :id="item.id" :name="item.replyer.realname"
+      <CardItemAnswer :isBestAdopt="true" v-for="item of bestReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
         :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
         :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" @upPost="upPost"></CardItemAnswer>
     </div>
     <div v-if="goodReply.length != 0">
       <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">精选回答</span>
-      <CardItemAnswer v-for="item of goodReply" :key="item.id" :id="item.id" :name="item.replyer.realname" :avatar="item.replyer.profilePicture"
-        :time="item.createTime" :answer="item.content" :commentNum="item.commentCount" :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost"
-        @upPost="upPost"></CardItemAnswer>
+      <CardItemAnswer v-for="item of goodReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
+        :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
+        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" @upPost="upPost"></CardItemAnswer>
     </div>
     <div v-if="otherReply.length != 0" style="padding-bottom:50px;">
       <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">其他回答</span>
-      <CardItemAnswer v-for="item of otherReply" :key="item.id" :id="item.id" :name="item.replyer.realname" :avatar="item.replyer.profilePicture"
-        :time="item.createTime" :answer="item.content" :commentNum="item.commentCount" :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost"
-        @upPost="upPost"></CardItemAnswer>
+      <CardItemAnswer v-for="item of otherReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
+        :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
+        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" @upPost="upPost"></CardItemAnswer>
     </div>
     <Footer class="joo-question-footer">
       <template slot="content">
@@ -62,9 +62,6 @@ import Header from '@/views/commons/header.vue'
 import Footer from '@/views/commons/footer.vue'
 import CardItemAnswer from '@/views/commons/card-item-answer.vue'
 // import MyScroll from '@/views/commons/my-scroll.vue'
-import * as Net from '@/network/index'
-import * as Utils from '@/utils/index'
-import bus from '@/utils/bus'
 
 import { Previewer, TransferDom } from 'vux'
 import { mapGetters, mapMutations, mapActions } from 'vuex'
@@ -113,7 +110,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['sessionKey']),
+    ...mapGetters(['sessionKey', 'userId']),
     previewImgs: function() {
       let list = []
       this.images.forEach(element => {
@@ -133,10 +130,14 @@ export default {
       )
     }
   },
-  mounted() {
+  async mounted() {
     const _this = this
     _this.problemId = this.$route.params.id
     _this._handelMenuAction()
+    // if (Utils.isEmpty(_this.sessionKey)) {
+    //   await Utils.initOauth()
+    // }
+
     _this._getProblem()
     _this._listReplys()
   },
@@ -145,7 +146,7 @@ export default {
     ...mapActions(['showPopupAction']),
     _handelMenuAction() {
       const _this = this
-      bus.$on('menu3', data => {
+      _this.$bus.$on('menu3', data => {
         // TODO 分享
         sqt.shareAll({
           url: 'https://static.joojee.cn/swwd/question/' + _this.problemId, // 分享网页地址
@@ -159,7 +160,7 @@ export default {
     },
     async _getProblem() {
       const _this = this
-      await Net.getProblem(_this.problemId).then(res => {
+      await _this.$net.getProblem(_this.problemId).then(res => {
         res = res.data.entities[0]
         console.log('problem', res)
         _this.title = res.title
@@ -178,7 +179,7 @@ export default {
     },
     async _listReplys() {
       const _this = this
-      await Net.listReplys(_this.problemId).then(res => {
+      await _this.$net.listReplys(_this.problemId).then(res => {
         console.log('_listReplys', res)
         res = res.data.entities
         res.forEach(e => {
@@ -200,8 +201,8 @@ export default {
     },
     toAnswer() {
       const _this = this
-      if (_this.sessionKey == '') {
-        Utils.oauth()
+      if (_this.$utils.isEmpty(this.sessionKey)) {
+        _this.$utils.oauth()
         return
       }
       _this.setAnswer({
@@ -209,12 +210,11 @@ export default {
         title: _this.title
       })
       this.$router.push({
-        name: 'answer',
-        params: { userId: `${this.problemId}` }
+        name: 'answer'
       })
     },
     logIndexChange(e) {
-      //隐藏fullscreen按钮
+      //隐藏fullscreen按钮，安卓端浏览图片全屏会出现bug
       document.getElementsByClassName('pswp__button--fs')[0].style.display =
         'none'
     },
@@ -225,20 +225,28 @@ export default {
         'none'
     },
     collect() {
+      if (_this.$utils.isEmpty(this.sessionKey)) {
+        _this.$utils.oauth()
+        return
+      }
       if (this.isCollect) {
-        Net.cancelCollectProblem(this.problemId)
+        _this.$net.cancelCollectProblem(this.problemId)
         this.collectNum--
       } else {
-        Net.collectProblem(this.problemId)
+        _this.$net.collectProblem(this.problemId)
         this.collectNum++
       }
       this.isCollect = !this.isCollect
     },
     upPost(item) {
+      if (_this.$utils.isEmpty(this.sessionKey)) {
+        _this.$utils.oauth()
+        return
+      }
       if (item.hasUpPost) {
-        Net.upReply(item.id)
+        _this.$net.upReply(item.id)
       } else {
-        Net.cancelUpReply(item.id)
+        _this.$net.cancelUpReply(item.id)
       }
     }
   }

@@ -5,7 +5,7 @@
     </div>
     <div class="answer-desc-div">
       <textarea ref="answerTextarea" v-focus class="answer-desc" utocomplete="off" contenteditable="true" autocapitalize="on" autocorrect="off"
-        spellcheck="false" rows="8" placeholder="添加回答内容" name="description" maxlength="300" v-model="content"></textarea>
+        spellcheck="false" rows="8" placeholder="添加回答内容" name="description" v-model="content"></textarea>
       <div class="answer-imgs">
         <flexbox :gutter="15">
           <flexbox-item :span="3" v-for="(item,index) of imgList" :key="index">
@@ -27,6 +27,7 @@
           </flexbox-item>
         </flexbox>
       </div>
+      <!-- <button @click="_submit">OK</button> -->
     </div>
     <div v-transfer-dom>
       <popup v-model="showPopup" position="top" :show-mask="false">
@@ -38,11 +39,10 @@
   </div>
 </template>
 <script>
-import bus from '@/utils/bus'
-import * as utils from '@/utils/index'
 import { TransferDom, Popup, XCircle } from 'vux'
-import { mapGetters, mapMutations } from 'vuex'
-import * as Net from '@/network/index'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
+
+import autosize from 'autosize'
 
 export default {
   directives: {
@@ -83,12 +83,14 @@ export default {
   mounted() {
     this._handelMenuAction()
     this.$refs.answerTextarea.focus()
+    autosize(this.$refs.answerTextarea)
   },
   methods: {
+    ...mapActions(['showPopupAction']),
     _handelMenuAction() {
       const _this = this
-      bus.$on('menu9', data => {
-        if (utils.isEmpty(_this.content)) {
+      _this.$bus.$on('menu9', data => {
+        if (_this.$utils.isEmpty(_this.content)) {
           _this.showPopup = true
           return
         }
@@ -97,19 +99,28 @@ export default {
     },
     _submit() {
       const _this = this
-      _this.popupType = true
-      _this.popupMsg = ' 发布成功！'
-      _this.showPopup = true
+      if (_this.content == '') {
+        _this.showPopupAction({
+          type: false,
+          msg: '请填写回复内容'
+        })
+        return
+      }
       let imgUrl = []
       _this.imgList.forEach(item => {
         imgUrl.push(item.picUrl)
       })
-      Net.submitReply(_this.answer.id, _this.content, imgUrl).then(res => {
-        console.log(res)
-      })
-      setTimeout(() => {
-        _this.$router.go(-1)
-      }, 1500)
+      _this.$net
+        .submitReply(_this.answer.id, _this.content, imgUrl)
+        .then(res => {
+          _this.showPopupAction({
+            type: true,
+            msg: '发布成功！'
+          })
+          setTimeout(() => {
+            _this.$router.go(-1)
+          }, 2000)
+        })
     },
     uploadImg() {
       const _this = this

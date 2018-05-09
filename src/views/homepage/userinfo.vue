@@ -14,7 +14,7 @@
     </div>
     <div class="info-cell">
       <div class="cell-span">介绍</div>
-      <div class="cell-value" v-text="desc" @click="showEditDesc = true"></div>
+      <div class="cell-value" @click="showEditDesc = true">{{desc}}</div>
     </div>
     <div class="tips"><i class="iconfont icon-jingshi"></i>可点击个人介绍进行修改，最多20个字。</div>
     <miiky-textarea v-show="showEditDesc" :content="desc" :maxLength="20" @submit="submit"></miiky-textarea>
@@ -35,39 +35,35 @@ export default {
       showEditDesc: false,
       avatar:
         'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3802506693,1778634825&fm=27&gp=0.jpg',
-      name: '王倩倩',
+      name: '无',
       gender: '女',
-      desc: '财务总监，20年工作经验财务总监。',
-      editDesc: '',
+      desc: '',
       descEditValue: '',
       showNumbers: false
     }
   },
   mounted() {
-    this.editDesc = this.desc
     this._handelMenuAction()
+    let user = this.$route.query
+    this.name = user.name
+    this.gender = user.gendar == 1 ? '男' : '女'
+    this.avatar = user.profilePicture
+    this.desc = user.selfIntroduction
   },
   methods: {
     ...mapActions(['showPopupAction']),
     _handelMenuAction() {
       const _this = this
-      bus.$on('menu12', data => {
+      _this.$bus.$on('menu12', data => {
+        if (this.desc == '') {
+          this.desc == '这家伙很懒，什么都没写！'
+        }
+        _this.$net.updateSelfIntroduction(this.desc)
         _this.showPopupAction({
           type: true,
           msg: '修改个人简介成功！'
         })
-        // setTimeout(() => {
-        //   _this.$router.go(-1)
-        // }, 1500)
       })
-    },
-    changeDesc(dom) {
-      let text = dom.srcElement.textContent
-      if (text.length <= 20) {
-        this.editDesc = text
-      } else {
-        dom.srcElement.textContent = this.editDesc
-      }
     },
     blur() {
       this.desc = this.editDesc

@@ -1,4 +1,4 @@
-import * as utils from '@/utils/index'
+import utils from '@/utils/utils'
 import Cookies from 'js-cookie'
 
 const state = {
@@ -6,13 +6,14 @@ const state = {
   code: '', // code
   userAccessToken: '', //用户token
   sessionKey: '', //jeebbs凭证
+  expiresDate: 0, // cookie过期时间
+  userId: '', //用户Id
   requests: [], // 所有的请求栈
   loading: false, //页面toast模式
   topLoading: false, //页面顶部菊花模式
-  showPopup: false,
-  popupType: false,
-  popupMsg: '',
-  userId: ''
+  showPopup: false, //顶部pop模式提示
+  popupType: false, //pop提示类型  true：正确；false：错误
+  popupMsg: '' // pop提示内容
 }
 
 //暴露getters供获取state的值
@@ -23,11 +24,19 @@ const getters = {
   userAccessToken() {
     return state.userAccessToken || Cookies.get('user_access_token')
   },
+  token() {
+    return (
+      Cookies.get('user_access_token') || Cookies.get('server_access_token')
+    )
+  },
   code() {
     return state.code
   },
   sessionKey() {
-    return state.sessionKey || utils.loadFromLocal('session_key')
+    return state.sessionKey || Cookies.get('session_key')
+  },
+  userId(state) {
+    return state.userId || Cookies.get('userId')
   },
   loading(state) {
     return state.loading
@@ -43,9 +52,6 @@ const getters = {
   },
   popupMsg(state) {
     return state.popupMsg
-  },
-  userId(state) {
-    return state.userId
   }
 }
 
@@ -63,10 +69,10 @@ const mutations = {
   /**设置用户token */
   setUserAccessToken(state, payload) {
     state.code = payload.code
-
     state.userAccessToken = payload.token
     //同步存储到cookie中设置token过期时间
     let expiresDate = new Date(new Date().getTime() + payload.expires_in * 1000)
+    state.expiresDate = expiresDate
     Cookies.set('user_access_token', payload.token, {
       expires: expiresDate
     })
@@ -74,7 +80,17 @@ const mutations = {
   /**设置用户JEEBBS令牌 */
   setSessionKey(state, payload) {
     state.sessionKey = payload
-    utils.saveToLocal('session_key', payload)
+    // utils.saveToLocal('session_key', payload)
+    Cookies.set('session_key', payload, {
+      expires: state.expiresDate
+    })
+  },
+  setUserId(state, payload) {
+    state.userId = payload
+    // utils.saveToLocal('userId', payload)
+    Cookies.set('userId', payload, {
+      expires: state.expiresDate
+    })
   },
   /**请求入栈 */
   pushRequest(state, payload) {
@@ -119,9 +135,6 @@ const mutations = {
   /**影藏顶部吐司提示 */
   hidePopup(state, payload) {
     state.showPopup = payload
-  },
-  setUserId(state, payload) {
-    state.userId = payload
   }
 }
 

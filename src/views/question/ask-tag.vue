@@ -24,9 +24,7 @@
 </template>
 <script>
 import { TransferDom, Popup } from 'vux'
-import bus from '@/utils/bus'
 import { mapGetters, mapMutations } from 'vuex'
-import * as Net from '@/network/index'
 
 export default {
   directives: {
@@ -72,7 +70,7 @@ export default {
     ...mapMutations(['clearProblem']),
     _handelMenuAction() {
       const _this = this
-      bus.$on('menu5', data => {
+      _this.$bus.$on('menu5', data => {
         if (_this.chooseList.length === 0) {
           _this.showPopup = true
           return
@@ -82,7 +80,7 @@ export default {
     },
     async _initTags() {
       const _this = this
-      await Net.listProblemTags().then(res => {
+      await _this.$net.listProblemTags().then(res => {
         _this.tagList = res.data.entities
       })
     },
@@ -116,9 +114,11 @@ export default {
         problemTags.push(item.id)
       })
       _this.clearProblem()
-      Net.submitProblem(title, content, problemTags, imgUrl).then(res => {
-        console.log(res)
-      })
+      _this.$net
+        .submitProblem(title, content, problemTags, imgUrl)
+        .then(res => {
+          console.log(res)
+        })
       setTimeout(() => {
         _this.$router.push('/')
       }, 1500)

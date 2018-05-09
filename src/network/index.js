@@ -1,6 +1,5 @@
 import Axios from './axios'
 import store from '@/store/index'
-import swwd from '../store/modules/swwd'
 
 const _isPro = process.env.NODE_ENV === 'production'
 
@@ -22,7 +21,9 @@ const REDIRECT_RUL = _isPro
   ? 'https://static.joojee.cn/swwd'
   : 'http://192.168.1.222:8080/'
 
-export const redirect_uri_for_code =
+let net = {}
+
+net.redirect_uri_for_code =
   JOOJEE_OAUTH_URL +
   '/oauth/authorize?client_id=' +
   client_id +
@@ -31,10 +32,8 @@ export const redirect_uri_for_code =
 
 /**
  * 1、获取服务token
- * @param {* 回调参数} code
- * @param {* 回调地址} uri
  */
-export let getServerToken = code =>
+net.getServerToken = () =>
   Axios.post(JOOJEE_OAUTH_URL + '/oauth/token', {
     client_id: client_id,
     client_secret: client_secret,
@@ -44,9 +43,8 @@ export let getServerToken = code =>
 /**
  * 2、获取用户token
  * @param {* 回调参数} code
- * @param {* 回调地址} uri
  */
-export let getUserToken = code =>
+net.getUserToken = code =>
   Axios.post(JOOJEE_OAUTH_URL + '/oauth/token', {
     client_id: client_id,
     client_secret: client_secret,
@@ -59,13 +57,15 @@ export let getUserToken = code =>
  * 3、获取sessionKey
  * @param {用户token} token
  */
-export let getSessionKey = token =>
-  Axios.post(SWWD_API_URL + '/login', { access_token: token })
+net.getSessionKey = token =>
+  Axios.post(SWWD_API_URL + '/login', {
+    access_token: token
+  })
 
 /**
  * 4、获取热门讨论列表
  */
-export let listHotDiscuss = () => Axios.post(SWWD_API_URL + '/listHotDiscuss')
+net.listHotDiscuss = () => Axios.post(SWWD_API_URL + '/listHotDiscuss')
 
 /**
  * 5、获取推荐列表
@@ -73,9 +73,9 @@ export let listHotDiscuss = () => Axios.post(SWWD_API_URL + '/listHotDiscuss')
  * @param {页数} pageNo
  * @param {每页的条数} pageSize
  */
-export let listRecommendProblems = (pageNo = 1, pageSize = 20) =>
+net.listRecommendProblems = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listRecommendProblems', {
-    access_token: store.getters.userAccessToken,
+    access_token: store.getters.token,
     pageNo: pageNo,
     pageSize: pageSize
   })
@@ -86,9 +86,9 @@ export let listRecommendProblems = (pageNo = 1, pageSize = 20) =>
  * @param {页数} pageNo
  * @param {每页的条数} pageSize
  */
-export let listNewestProblems = (pageNo = 1, pageSize = 20) =>
+net.listNewestProblems = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listNewestProblems', {
-    access_token: store.getters.userAccessToken,
+    access_token: store.getters.token,
     pageNo: pageNo,
     pageSize: pageSize
   })
@@ -98,9 +98,9 @@ export let listNewestProblems = (pageNo = 1, pageSize = 20) =>
  * @param {页数} pageNo
  * @param {每页条数} pageSize
  */
-export let listAttentProblems = (pageNo = 1, pageSize = 20) =>
+net.listAttentProblems = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listAttentProblems', {
-    access_token: store.getters.userAccessToken,
+    access_token: store.getters.token,
     sessionKey: store.getters.sessionKey,
     pageNo: pageNo,
     pageSize: pageSize
@@ -112,9 +112,9 @@ export let listAttentProblems = (pageNo = 1, pageSize = 20) =>
  * @param {问题ID} id
  * @param {jeebbs状态令牌} sessionKey
  */
-export let getProblem = id =>
+net.getProblem = id =>
   Axios.post(SWWD_API_URL + '/getProblem', {
-    access_token: store.getters.userAccessToken,
+    access_token: store.getters.token,
     sessionKey: store.getters.sessionKey,
     id: id
   })
@@ -125,9 +125,9 @@ export let getProblem = id =>
  * @param {页数} pageNo
  * @param {一页多少个} pageSize
  */
-export let listReplys = (id, pageNo = 1, pageSize = 20) =>
+net.listReplys = (id, pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listReplys', {
-    access_token: store.getters.userAccessToken,
+    access_token: store.getters.token,
     sessionKey: store.getters.sessionKey,
     problemId: id,
     pageNo: pageNo,
@@ -138,9 +138,9 @@ export let listReplys = (id, pageNo = 1, pageSize = 20) =>
  * 10、获取答复详情
  * @param {答复ID} replyId
  */
-export let getReply = replyId =>
+net.getReply = replyId =>
   Axios.post(SWWD_API_URL + '/getReply', {
-    access_token: store.getters.userAccessToken,
+    access_token: store.getters.token,
     sessionKey: store.getters.sessionKey,
     replyId: replyId
   })
@@ -152,9 +152,9 @@ export let getReply = replyId =>
  * @param {页数} pageNo
  * @param {一页多少个} pageSize
  */
-export let listComments = (problemId, replyId, pageNo = 1, pageSize = 50) =>
+net.listComments = (problemId, replyId, pageNo = 1, pageSize = 50) =>
   Axios.post(SWWD_API_URL + '/listComments', {
-    access_token: store.getters.userAccessToken,
+    access_token: store.getters.token,
     sessionKey: store.getters.sessionKey,
     problemId: problemId,
     replyId: replyId,
@@ -169,7 +169,7 @@ export let listComments = (problemId, replyId, pageNo = 1, pageSize = 50) =>
  * @param {问题标签} problemTags
  * @param {配图地址} imgUrl
  */
-export let submitProblem = (title, content, problemTags, imgUrl) =>
+net.submitProblem = (title, content, problemTags, imgUrl) =>
   Axios.post(SWWD_API_URL + '/submitProblem', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -182,10 +182,10 @@ export let submitProblem = (title, content, problemTags, imgUrl) =>
 /**
  * 13、获取问题标签列表
  */
-export let listProblemTags = () =>
+net.listProblemTags = () =>
   Axios.post(SWWD_API_URL + '/listProblemTags', {
     sessionKey: store.getters.sessionKey,
-    access_token: store.getters.userAccessToken
+    access_token: store.getters.token
   })
 
 /**
@@ -194,7 +194,7 @@ export let listProblemTags = () =>
  * @param {回复内容} content
  * @param {回复图片列表} imgUrl
  */
-export let submitReply = (problemId, content, imgUrl) =>
+net.submitReply = (problemId, content, imgUrl) =>
   Axios.post(SWWD_API_URL + '/submitReply', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -209,7 +209,7 @@ export let submitReply = (problemId, content, imgUrl) =>
  * @param {回复ID} replyId
  * @param {评论内容} content
  */
-export let submitComment = (problemId, replyId, content) =>
+net.submitComment = (problemId, replyId, content) =>
   Axios.post(SWWD_API_URL + '/submitComment', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -223,7 +223,7 @@ export let submitComment = (problemId, replyId, content) =>
  * @param {问题ID} problemId
  * @param {回复ID} replyId
  */
-export let setBestReply = (problemId, replyId) =>
+net.setBestReply = (problemId, replyId) =>
   Axios.post(SWWD_API_URL + '/setBestReply', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -235,7 +235,7 @@ export let setBestReply = (problemId, replyId) =>
  * 17、收藏问题
  * @param {问题ID} problemId
  */
-export let collectProblem = problemId =>
+net.collectProblem = problemId =>
   Axios.post(SWWD_API_URL + '/collectProblem', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -246,7 +246,7 @@ export let collectProblem = problemId =>
  * 18、取消收藏问题
  * @param {问题ID} problemId
  */
-export let cancelCollectProblem = problemId =>
+net.cancelCollectProblem = problemId =>
   Axios.post(SWWD_API_URL + '/cancleCollectProblem', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -257,7 +257,7 @@ export let cancelCollectProblem = problemId =>
  * 19、点赞回复或评论
  * @param {回复ID} replyId
  */
-export let upReply = replyId =>
+net.upReply = replyId =>
   Axios.post(SWWD_API_URL + '/upReply', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -268,7 +268,7 @@ export let upReply = replyId =>
  * 20、取消点赞回复或评论
  * @param {回复ID} replyId
  */
-export let cancelUpReply = replyId =>
+net.cancelUpReply = replyId =>
   Axios.post(SWWD_API_URL + '/cancleUpReply', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -279,7 +279,7 @@ export let cancelUpReply = replyId =>
  * 21、关注用户
  * @param {用户ID} userId
  */
-export let attentUser = userId =>
+net.attentUser = userId =>
   Axios.post(SWWD_API_URL + '/attentUser', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -290,7 +290,7 @@ export let attentUser = userId =>
  * 22、取消关注用户
  * @param {用户ID} userId
  */
-export let cancelAttentUser = userId =>
+net.cancelAttentUser = userId =>
   Axios.post(SWWD_API_URL + '/cancleAttentUser', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey,
@@ -300,7 +300,7 @@ export let cancelAttentUser = userId =>
 /**
  * 23、通过sessionkey获取userId
  */
-export let getUserId = () =>
+net.getUserId = () =>
   Axios.post(SWWD_API_URL + '/getUserId', {
     access_token: store.getters.userAccessToken,
     sessionKey: store.getters.sessionKey
@@ -312,11 +312,7 @@ export let getUserId = () =>
  * @param {页数} pageNo
  * @param {每页个数} pageSize
  */
-export let listNewestReplyOfHotDiscuss = (
-  discussId,
-  pageNo = 1,
-  pageSize = 10
-) =>
+net.listNewestReplyOfHotDiscuss = (discussId, pageNo = 1, pageSize = 10) =>
   Axios.post(SWWD_API_URL + '/listNewestReplyOfHotDiscuss', {
     discussId: discussId,
     pageNo: pageNo,
@@ -330,7 +326,7 @@ export let listNewestReplyOfHotDiscuss = (
  * @param {页数} pageNo
  * @param {每页个数} pageSize
  */
-export let listHotReplyOfHotDiscuss = (discussId, pageNo = 1, pageSize = 50) =>
+net.listHotReplyOfHotDiscuss = (discussId, pageNo = 1, pageSize = 50) =>
   Axios.post(SWWD_API_URL + '/listHotReplyOfHotDiscuss', {
     discussId: discussId,
     pageNo: pageNo,
@@ -341,7 +337,7 @@ export let listHotReplyOfHotDiscuss = (discussId, pageNo = 1, pageSize = 50) =>
 /**
  * 26、获取我的主页信息
  */
-export let getMyInfo = () =>
+net.getMyInfo = () =>
   Axios.post(SWWD_API_URL + '/getMyInfo', {
     sessionKey: store.getters.sessionKey
   })
@@ -351,7 +347,7 @@ export let getMyInfo = () =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listMySubmitProblems = (pageNo = 1, pageSize = 20) =>
+net.listMySubmitProblems = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listMySubmitProblems', {
     pageNo: pageNo,
     pageSize: pageSize,
@@ -363,7 +359,7 @@ export let listMySubmitProblems = (pageNo = 1, pageSize = 20) =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listMyReplyProblems = (pageNo = 1, pageSize = 20) =>
+net.listMyReplyProblems = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listMyReplyProblems', {
     pageNo: pageNo,
     pageSize: pageSize,
@@ -375,7 +371,7 @@ export let listMyReplyProblems = (pageNo = 1, pageSize = 20) =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listMyCollectProblems = (pageNo = 1, pageSize = 20) =>
+net.listMyCollectProblems = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listMyCollectProblems', {
     pageNo: pageNo,
     pageSize: pageSize,
@@ -385,7 +381,7 @@ export let listMyCollectProblems = (pageNo = 1, pageSize = 20) =>
 /**
  * 30、获取我收藏的问题数量
  */
-export let countMyCollectProblems = () =>
+net.countMyCollectProblems = () =>
   Axios.post(SWWD_API_URL + '/countMyCollectProblems', {
     sessionKey: store.getters.sessionKey
   })
@@ -395,7 +391,7 @@ export let countMyCollectProblems = () =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listMyAttent = (pageNo = 1, pageSize = 20) =>
+net.listMyAttent = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listMyAttent', {
     pageNo: pageNo,
     pageSize: pageSize,
@@ -407,7 +403,7 @@ export let listMyAttent = (pageNo = 1, pageSize = 20) =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listMyDynamics = (pageNo = 1, pageSize = 20) =>
+net.listMyDynamics = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listMyDynamics', {
     pageNo: pageNo,
     pageSize: pageSize,
@@ -419,7 +415,7 @@ export let listMyDynamics = (pageNo = 1, pageSize = 20) =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listMyFans = (pageNo = 1, pageSize = 20) =>
+net.listMyFans = (pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listMyFans', {
     pageNo: pageNo,
     pageSize: pageSize,
@@ -431,7 +427,7 @@ export let listMyFans = (pageNo = 1, pageSize = 20) =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listSomeoneSubmitProblems = (userId, pageNo = 1, pageSize = 20) =>
+net.listSomeoneSubmitProblems = (userId, pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listSomeoneSubmitProblems', {
     userId: userId,
     pageNo: pageNo,
@@ -444,7 +440,7 @@ export let listSomeoneSubmitProblems = (userId, pageNo = 1, pageSize = 20) =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listSomeoneReplyProblems = (userId, pageNo = 1, pageSize = 20) =>
+net.listSomeoneReplyProblems = (userId, pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listSomeoneReplyProblems', {
     userId: userId,
     pageNo: pageNo,
@@ -458,7 +454,7 @@ export let listSomeoneReplyProblems = (userId, pageNo = 1, pageSize = 20) =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listSomeoneCollectProblems = (userId, pageNo = 1, pageSize = 20) =>
+net.listSomeoneCollectProblems = (userId, pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listSomeoneCollectProblems', {
     userId: userId,
     pageNo: pageNo,
@@ -470,17 +466,17 @@ export let listSomeoneCollectProblems = (userId, pageNo = 1, pageSize = 20) =>
  * 37、获取他人的主页信息
  * @param {*} userId
  */
-export let getSomeoneInfo = userId =>
+net.getSomeoneInfo = userId =>
   Axios.post(SWWD_API_URL + '/getSomeoneInfo', {
     userId: userId,
     sessionKey: store.getters.sessionKey
   })
 
 /**
- * 38、获取他人的主页信息
+ * 38、获取他人的关注列表
  * @param {*} userId
  */
-export let listSomeoneAttent = userId =>
+net.listSomeoneAttent = userId =>
   Axios.post(SWWD_API_URL + '/listSomeoneAttent', {
     userId: userId,
     sessionKey: store.getters.sessionKey
@@ -492,7 +488,7 @@ export let listSomeoneAttent = userId =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listSomeoneDynamics = (userId, pageNo = 1, pageSize = 20) =>
+net.listSomeoneDynamics = (userId, pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listSomeoneDynamics', {
     userId: userId,
     pageNo: pageNo,
@@ -506,7 +502,7 @@ export let listSomeoneDynamics = (userId, pageNo = 1, pageSize = 20) =>
  * @param {*} pageNo
  * @param {*} pageSize
  */
-export let listSomeoneFans = (userId, pageNo = 1, pageSize = 20) =>
+net.listSomeoneFans = (userId, pageNo = 1, pageSize = 20) =>
   Axios.post(SWWD_API_URL + '/listSomeoneFans', {
     userId: userId,
     pageNo: pageNo,
@@ -518,9 +514,21 @@ export let listSomeoneFans = (userId, pageNo = 1, pageSize = 20) =>
  * 41、搜索
  * @param {关键字} keywords
  */
-export let search = (keywords, pageNo = 1, pageSize = 10) =>
+net.search = (keywords, pageNo = 1, pageSize = 10) =>
   Axios.post(SWWD_API_URL + '/search', {
     keywords: keywords,
     pageNo: pageNo,
     pageSize: pageSize
   })
+
+/**
+ * 42、修改个人简介
+ * @param {个人简介} selfIntroduction
+ */
+net.updateSelfIntroduction = selfIntroduction =>
+  Axios.post(SWWD_API_URL + '/updateSelfIntroduction', {
+    sessionKey: store.getters.sessionKey,
+    selfIntroduction: selfIntroduction
+  })
+
+export default net

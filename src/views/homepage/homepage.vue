@@ -9,19 +9,25 @@
         </div>
         <div class="user-extend">
           <div class="extend-answer">
-            <div class="extend-number">{{attentCount}}</div>
+
+            <div class="extend-number">{{replyTotal}}</div>
+
             <div class="extend-name">回答</div>
           </div>
           <div class="extend-fans">
-            <div class="extend-number">{{fansCount}}</div>
+            <router-link :to="{ name: 'userlist', params: { id: id },query:{type: 0}}">
+              <div class="extend-number">{{fansCount}}</div>
+            </router-link>
             <div class="extend-name">粉丝</div>
           </div>
           <div class="extend-follow">
-            <div class="extend-number">{{collectCount}}</div>
+            <router-link :to="{ name: 'userlist', params: { id: id },query:{type: 1}}">
+              <div class="extend-number">{{attentCount}}</div>
+            </router-link>
             <div class="extend-name">关注</div>
           </div>
           <div class="extend-action">
-            <router-link :to="{ name: 'userinfo', params: { id: `${id}` }}">
+            <router-link :to="{ name: 'userinfo', params: { id: id }, query: {name: realname, gendar: gendar, selfIntroduction:selfIntroduction,profilePicture: profilePicture}}">
               <button class="action-edit">编辑</button>
             </router-link>
           </div>
@@ -36,35 +42,69 @@
     </sticky>
     <swiper ref="swiper" v-model="tabIndex" height="aspect-ratio" :show-dots="false" :threshold="150" :min-moving-distance="150"
       @on-index-change="swiperChange">
-      <swiper-item>
+      <swiper-item class="swiper-item">
+        <!-- 动态 -->
         <div class="tab-content-news" ref="newsBody">
-          <div class="no-content">
+          <div class="no-content" v-if="dynamicsList.length == 0">
             <img src="@/assets/imgs/no-content.png" />
             <div class="content-text">暂无内容</div>
           </div>
-
+          <div v-if="dynamicsList.length != 0">
+            <CardItem v-for="(item,index) of dynamicsList" :key="index" :id="item.problem.id" :title="item.problem.title" :answer="item.problem.replys[0].content"
+              :tagList="item.problem.tags" :tagType="item.problem.replys[0].replyType" :browseNum="item.problem.viewCount"
+              :answerNum="item.problem.replyCount" :needHeader="true" :name="''" :acitonType="item.type" :avatar="''" :time="item.opreteTime"
+              :needAvatar="false"></CardItem>
+          </div>
         </div>
       </swiper-item>
       <swiper-item>
+        <!-- 提问 -->
         <div class="tab-content-question" ref="questionBody">
-          <div class="no-content">
+          <div class="no-content" v-if="submitTotal == 0">
             <img src="@/assets/imgs/no-content.png" />
             <div class="content-text">暂无内容</div>
+          </div>
+          <div v-if="submitTotal != 0">
+            <p class="total">共{{submitTotal}}条</p>
+            <div class="question-item" v-for="item of submitList" :key="item.id">
+              <router-link :to="{ name: 'question', params: { id: item.id }}">
+                <div class="item-title">{{item.title}}</div>
+              </router-link>
+              <div class="item-footer">
+                <div class="item-time">{{item.createTime | timeFormat}}</div>
+                <div class="item-status" :class="item.checkStatus == 1?'item-status-1':'item-status-0'">{{item.checkStatus | statusFormat}}</div>
+              </div>
+            </div>
+            <!-- <CardItem v-for="(item,index) of submitList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
+              :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem> -->
           </div>
         </div>
       </swiper-item>
       <swiper-item>
+        <!-- 回答 -->
         <div class="tab-content-answer" ref="answerBody">
-          <p>共{{recommondList.length}}条</p>
-          <CardItem v-for="(item,index) of recommondList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
-            :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+          <div class="no-content" v-if="replyTotal == 0">
+            <img src="@/assets/imgs/no-content.png" />
+            <div class="content-text">暂无内容</div>
+          </div>
+          <div v-if="replyTotal != 0">
+            <p class="total">共{{replyTotal}}条</p>
+            <CardItem v-for="(item,index) of replyList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
+              :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+          </div>
         </div>
       </swiper-item>
       <swiper-item>
+        <!-- 收藏 -->
         <div class="tab-content-collection" ref="collectionBody">
-          <div class="no-content">
+          <div class="no-content" v-if="collectTotal == 0">
             <img src="@/assets/imgs/no-content.png" />
             <div class="content-text">暂无内容</div>
+          </div>
+          <div v-if="collectTotal != 0">
+            <p class="total">共{{collectTotal}}条</p>
+            <CardItem v-for="(item,index) of collectList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
+              :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
           </div>
         </div>
       </swiper-item>
@@ -75,7 +115,6 @@
 import { Tab, TabItem, Sticky, Swiper, SwiperItem } from 'vux'
 import { mapGetters, mapMutations } from 'vuex'
 import CardItem from '@/views/commons/card-item.vue'
-import * as Net from '@/network/index'
 
 export default {
   name: 'home',
@@ -88,7 +127,7 @@ export default {
     SwiperItem
   },
   watch: {
-    recommondList(val) {
+    dynamicsList(val) {
       this.$nextTick(() => {
         this.reSizeSwiperHeight(this.tabIndex)
       })
@@ -109,7 +148,22 @@ export default {
       profilePicture: '',
       realname: '',
       selfIntroduction: null,
-      username: ''
+      username: '',
+
+      dynamicsList: [],
+      submitList: [],
+      replyList: [],
+      collectList: [],
+
+      dynamicsTotal: 0,
+      submitTotal: 0,
+      replyTotal: 0,
+      collectTotal: 0,
+
+      dynamicsPage: 0,
+      submitPage: 0,
+      replyPage: 0,
+      collectPage: 0
     }
   },
   computed: {
@@ -119,11 +173,15 @@ export default {
     console.log(this.recommondList)
     this.reSizeSwiperHeight(this.tabIndex)
     this._getMyInfo()
+    this._listMySubmitProblems()
+    this._listMyReplyProblems()
+    this._listMyCollectProblems()
+    this._listMyDynamics()
   },
   methods: {
     _getMyInfo() {
       const _this = this
-      Net.getMyInfo().then(res => {
+      _this.$net.getMyInfo().then(res => {
         console.log(res.data.entities)
         let user = res.data.entities[0]
         _this.attentCount = user.attentCount
@@ -140,6 +198,41 @@ export default {
             ? '这家伙很懒，还没填写！'
             : user.selfIntroduction
         _this.username = user.username
+      })
+    },
+    _listMySubmitProblems() {
+      const _this = this
+      _this.$net.listMySubmitProblems().then(res => {
+        console.log('_listMySubmitProblems', res.data.entities[0])
+        let result = res.data.entities[0]
+        _this.submitList = result.result
+        _this.submitTotal = result.totalCount
+      })
+    },
+    _listMyReplyProblems() {
+      const _this = this
+      _this.$net.listMyReplyProblems().then(res => {
+        console.log('_listMyReplyProblems', res.data.entities[0])
+        let result = res.data.entities[0]
+        _this.replyList = result.result
+        _this.replyTotal = result.totalCount
+      })
+    },
+    _listMyCollectProblems() {
+      const _this = this
+      _this.$net.listMyCollectProblems().then(res => {
+        console.log('_listMyCollectProblems', res.data.entities[0])
+        let result = res.data.entities[0]
+        _this.collectList = result.result
+        _this.collectTotal = result.totalCount
+      })
+    },
+    _listMyDynamics() {
+      const _this = this
+      _this.$net.listMyDynamics().then(res => {
+        console.log('_listMyDynamics', res.data.entities)
+        let result = res.data.entities
+        _this.dynamicsList = result
       })
     },
     swiperChange(currentIndex) {
@@ -161,6 +254,15 @@ export default {
       _this.$nextTick(() => {
         _this.$refs.swiper.xheight = heights[currentIndex] + 'px'
       })
+    }
+  },
+  filters: {
+    timeFormat: function(val) {
+      return val.substr(5, 5)
+    },
+    statusFormat: function(val) {
+      //checkStatus; // 问题审核状态 0.审核中 1.审核成功 2.审核失败
+      return val == 0 ? '审核中' : val == 1 ? '审核成功' : '审核失败'
     }
   }
 }
@@ -186,6 +288,7 @@ export default {
         border-radius: 50%;
       }
       .user-content {
+        width: 80%;
         display: inline-block;
         height: 65px;
         vertical-align: middle;
@@ -206,6 +309,12 @@ export default {
         .user-desc {
           color: #666666;
           font-size: 15px;
+          text-overflow: -o-ellipsis-lastline;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
         }
       }
       .user-extend {
@@ -252,19 +361,45 @@ export default {
       }
     }
   }
+  .tab-content-question {
+    position: relative;
+    .question-item {
+      position: relative;
+      background-color: white;
+      font-size: 15px;
+      padding: 15px;
+      .item-title {
+        line-height: 25px;
+        color: #333333;
+        font-size: 17px;
+      }
+      .item-footer {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        line-height: 25px;
+        .item-time {
+          display: inline-block;
+          color: #a5a5a5;
+        }
+        .item-status {
+          float: right;
+        }
+        .item-status-0 {
+          color: #666666;
+        }
+        .item-status-1 {
+          color: #3ab78f;
+        }
+      }
+    }
+  }
   .tab-content-news {
     position: relative;
   }
-  .tab-content-answer {
-    p {
-      color: #a5a5a5;
-      font-size: 13px;
-      padding: 10px;
-    }
-  }
   .no-content {
     text-align: center;
-    padding: 5rem 0;
+    padding: 3rem 0;
     img {
       width: 127px;
     }
@@ -273,6 +408,11 @@ export default {
       color: #a5a5a5;
       font-size: 15px;
     }
+  }
+  .total {
+    color: #a5a5a5;
+    font-size: 13px;
+    padding: 10px;
   }
 }
 </style>

@@ -19,15 +19,14 @@ import { Flexbox, FlexboxItem } from 'vux'
 Vue.component('flexbox', Flexbox)
 Vue.component('flexbox-item', FlexboxItem)
 
-import Cube from 'cube-ui'
-
-Vue.use(Cube)
+import utils from '@/utils/utils'
+import bus from '@/utils/bus'
+import net from '@/network/index'
+Vue.prototype.$utils = utils
+Vue.prototype.$bus = bus
+Vue.prototype.$net = net
 
 // FastClick.attach(document.body)
-
-sqt.config({
-  debug: false
-})
 
 Vue.config.productionTip = false
 
@@ -35,5 +34,8 @@ Vue.config.productionTip = false
 new Vue({
   router,
   store,
-  render: h => h(App)
+  render: h => h(App),
+  created() {
+    this.$utils.initHeader()
+  }
 }).$mount('#app-box')

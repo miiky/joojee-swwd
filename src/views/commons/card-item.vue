@@ -1,12 +1,12 @@
 <template>
-  <router-link :to="{ name: 'question', params: { id: `${id}` }}">
+  <router-link :to="{ name: 'question', params: { id: id }}">
     <div class="joo-card-item">
       <template v-if="needHeader">
-        <div class="item-header">
-          <img class="item-avatar" :src="avatar" />
-          <div class="item-name">{{name}}</div>
-          <div class="item-time">{{time}}</div>
+        <div class="item-header" v-if="needAvatar">
+          <img v-if="avatar != ''" class="item-avatar" :src="avatar" />
+          <div v-if="name != ''" class="item-name">{{name}}</div>
         </div>
+        <div class="item-time">{{ time | timeFormat }}</div>
         <div class="item-action">{{ acitonType| toActionName }}</div>
       </template>
       <div class="item-title">{{title}}</div>
@@ -31,6 +31,10 @@ export default {
     needHeader: {
       type: Boolean,
       default: false
+    },
+    needAvatar: {
+      type: Boolean,
+      default: true
     },
     name: {
       type: String
@@ -103,7 +107,10 @@ export default {
         '回答了问题',
         '评论了回答'
       ]
-      return names[val]
+      return names[val - 1]
+    },
+    timeFormat: function(val) {
+      return val.substr(5, 5)
     }
   }
 }
@@ -129,11 +136,11 @@ export default {
       width: 30px;
       border-radius: 50%;
     }
-    .item-time {
-      float: right;
-      color: #a5a5a5;
-      font-size: 15px;
-    }
+  }
+  .item-time {
+    float: right;
+    color: #a5a5a5;
+    font-size: 15px;
   }
   .item-action {
     color: #a5a5a5;

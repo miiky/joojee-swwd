@@ -1,9 +1,10 @@
 <template>
   <div class="joo-main">
+    <div v-show="showRefresh" class="refresh" @click="refresh"><i class="iconfont icon-shuaxin"></i> 刷新页面</div>
     <div class="joo-hot" ref="hotWrapper">
       <ul class="hot-list" ref="hotList">
         <li class="hot-item" v-for="item in hotDiscussList" :key="item.id">
-          <HotDiscussCard :title="item.title" :desc="item.replyCount" :id="item.id"></HotDiscussCard>
+          <HotDiscussCard :title="item.title" :count="item.replyCount" :id="item.id"></HotDiscussCard>
         </li>
       </ul>
     </div>
@@ -50,12 +51,9 @@
       </swiper-item>
     </swiper>
     <load-more v-show="showLoadmore" :show-loading="showLoading" :tip="loadMoreTips" background-color="#fbf9fe" @click.native="loadMore"></load-more>
-    <router-link :to="{ name: 'askOne'}">
-      <div class="joo-question-btn">
-        <i class="iconfont icon-tiwen" style="font-size: 24px;"></i>
-      </div>
-    </router-link>
-  </div>
+    <div class="joo-question-btn" @click="toAsk">
+      <i class="iconfont icon-tiwen" style="font-size: 24px;"></i>
+    </div>
   </div>
 </template>
 
@@ -67,9 +65,6 @@ import HotDiscussCard from './components/hot-discuss-card.vue'
 import CardItem from '@/views/commons/card-item.vue'
 
 import { Tab, TabItem, Sticky, Swiper, SwiperItem, LoadMore } from 'vux'
-import bus from '@/utils/bus'
-import * as Net from '@/network/index'
-import * as Utils from '@/utils/index'
 import { mapGetters, mapMutations } from 'vuex'
 
 export default {
@@ -92,7 +87,8 @@ export default {
       loadMoreTips: '加载更多',
       tabIndex: 1,
       tabList: ['关注', '推荐', '最新'],
-      chooseTab: '关注'
+      chooseTab: '关注',
+      showRefresh: true
     }
   },
   watch: {
@@ -112,7 +108,8 @@ export default {
       'newestList',
       'attentionPage',
       'recommondPage',
-      'newestPage'
+      'newestPage',
+      'userId'
     ])
   },
   async mounted() {
@@ -123,23 +120,19 @@ export default {
     if (_this.serverAccessToken == '') {
       return
     }
-    if (Utils.isEmpty(_this.sessionKey)) {
-      await Utils.initOauth()
-      await _this._initUserId()
-    }
     if (_this.hotDiscussList.length == 0) {
-      await _this._listHotDiscuss()
+      _this._listHotDiscuss()
     } else {
-      await _this._initHotWrapper()
+      _this._initHotWrapper()
     }
     if (_this.recommondPage == 1) {
-      await _this._getRecommondList(1)
+      _this._getRecommondList(1)
     }
     if (_this.newestPage == 1) {
-      await _this._getNewestList(1)
+      _this._getNewestList(1)
     }
     if (_this.attentionPage == 1) {
-      await _this._getAttentionList(1)
+      _this._getAttentionList(1)
     }
   },
   methods: {
@@ -148,30 +141,33 @@ export default {
       'setNewestList',
       'setAttentionList',
       'setHotDiscussList',
-      'setUserId'
+      'resetPages'
     ]),
-    onPullingUp() {
-      console.log(123)
-    },
-    _initUserId() {
+    async refresh() {
       const _this = this
-      Net.getUserId().then(res => {
-        _this.setUserId(res.data.entities[0].userId)
-        console.log('userid', res.data.entities[0].userId)
-      })
+      _this.showRefresh = false
+      _this.resetPages()
+      _this._listHotDiscuss()
+      _this._getRecommondList(1)
+      _this._getNewestList(1)
+      _this._getAttentionList(1)
     },
     _handelMenuAction() {
       const _this = this
-      bus.$on('menu2', data => {
+      _this.$bus.$on('menu2', data => {
+        if (_this.$utils.isEmpty(this.sessionKey)) {
+          _this.$utils.oauth()
+          return
+        }
         _this.$router.push('/homepage')
       })
-      bus.$on('menu11', data => {
+      _this.$bus.$on('menu11', data => {
         _this.$router.push('/message')
       })
     },
     async _listHotDiscuss() {
       const _this = this
-      await Net.listHotDiscuss().then(res => {
+      await _this.$net.listHotDiscuss().then(res => {
         _this.setHotDiscussList(res.data.entities)
         _this._initHotWrapper()
       })
@@ -179,7 +175,7 @@ export default {
     async _getRecommondList(pageNo) {
       // 获取推荐列表
       const _this = this
-      await Net.listRecommendProblems(pageNo).then(res => {
+      await _this.$net.listRecommendProblems(pageNo).then(res => {
         if (res.data.entities.length != 0) {
           _this.setRecommondList(res.data.entities)
         } else {
@@ -190,7 +186,7 @@ export default {
     async _getNewestList(pageNo) {
       // 获取最新列表
       const _this = this
-      await Net.listNewestProblems(pageNo).then(res => {
+      await _this.$net.listNewestProblems(pageNo).then(res => {
         if (res.data.entities.length != 0) {
           _this.setNewestList(res.data.entities)
         } else {
@@ -200,7 +196,10 @@ export default {
     },
     async _getAttentionList(pageNo) {
       const _this = this
-      await Net.listAttentProblems(pageNo).then(res => {
+      if (_this.$utils.isEmpty(_this.sessionKey)) {
+        return
+      }
+      await _this.$net.listAttentProblems(pageNo).then(res => {
         // console.log('attention', res)
         if (res.data.entities.length != 0) {
           _this.setAttentionList(res.data.entities)
@@ -263,6 +262,14 @@ export default {
       }
       _this.showLoading = false
       _this.reSizeSwiperHeight(_this.tabIndex)
+    },
+    toAsk() {
+      const _this = this
+      if (_this.$utils.isEmpty(this.sessionKey)) {
+        _this.$utils.oauth()
+        return
+      }
+      this.$router.push({ name: 'askOne' })
     }
   }
 }
@@ -277,12 +284,11 @@ export default {
   left: 0;
   right: 0;
   background-color: #f5f5f5;
-  .main-scroll {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+  .refresh {
+    width: 100%;
+    margin-top: 5px;
+    line-height: 20px;
+    text-align: center;
   }
   .joo-hot {
     position: relative;

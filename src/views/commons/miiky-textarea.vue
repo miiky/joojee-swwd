@@ -58,7 +58,7 @@ export default {
       }, 300)
     },
     focus() {
-      console.log('focus')
+      // console.log('focus')
       this.scrollToEnd()
     },
     blur() {

@@ -26,8 +26,8 @@
         </div>
         <div class="close-scroll" @click="showSelect = false"><i class="iconfont icon-shouqi"></i> 收起</div>
       </div>
-      <textarea class="ask-desc" utocomplete="off" v-model="content" contenteditable="true" autocapitalize="on" autocorrect="off"
-        spellcheck="false" rows="5" placeholder="添加问题描述(选填)" name="description" maxlength="300"></textarea>
+      <textarea ref="askDesc" class="ask-desc" utocomplete="off" v-model="content" contenteditable="true" autocapitalize="on" autocorrect="off"
+        spellcheck="false" rows="5" placeholder="添加问题描述(选填)" name="description"></textarea>
       <div class="ask-imgs">
         <flexbox :gutter="15">
           <flexbox-item :span="3" v-for="(item,index) of imgList" :key="index">
@@ -60,11 +60,8 @@
   </div>
 </template>
 <script>
-import bus from '@/utils/bus'
-import * as utils from '@/utils/index'
 import { TransferDom, Popup, XCircle, Scroller } from 'vux'
 import BScroll from 'better-scroll'
-import * as Net from '@/network/index'
 
 import autosize from 'autosize'
 
@@ -122,6 +119,7 @@ export default {
   mounted() {
     const _this = this
     autosize(_this.$refs.askTitle)
+    autosize(_this.$refs.askDesc)
     _this.handelMenuAction()
     _this.title = _this.problem.title
     _this.content = _this.problem.content
@@ -139,7 +137,7 @@ export default {
     },
     search() {
       const _this = this
-      Net.search(_this.title).then(res => {
+      _this.$net.search(_this.title).then(res => {
         console.log(res)
         _this.searchList = res.data.entities[0].datas
         res.data.entities[0].datas.filter(item => {
@@ -149,8 +147,8 @@ export default {
     },
     handelMenuAction() {
       const _this = this
-      bus.$on('menu4', data => {
-        if (utils.isEmpty(_this.title)) {
+      _this.$bus.$on('menu4', data => {
+        if (_this.$utils.isEmpty(_this.title)) {
           _this.showError = true
           return
         }

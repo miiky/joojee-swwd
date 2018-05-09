@@ -1,8 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import store from '@/store/index'
 Vue.use(Router)
 
-import * as utils from '@/utils/index'
+import utils from '@/utils/utils'
 
 import Home from '@/views/home/home'
 import Question from '@/views/question/question-list'
@@ -10,10 +11,14 @@ import AnswerList from '@/views/answer/answer-list'
 import Answer from '@/views/answer/answer'
 import AskOne from '@/views/question/ask-title'
 import AskTwo from '@/views/question/ask-tag'
-import HomePage from '@/views/home/homepage'
-import Message from '@/views/home/message'
-import Userinfo from '@/views/home/userinfo'
-import HotDiscuss from '@/views/question/hot-discuss'
+
+import HotDiscuss from '@/views/discuss/hot-discuss'
+
+import HomePage from '@/views/homepage/homepage'
+import HomePageOther from '@/views/homepage/homepage-other'
+import Message from '@/views/homepage/message'
+import Userinfo from '@/views/homepage/userinfo'
+import UserList from '@/views/homepage/user-list'
 
 const router = new Router({
   mode: 'history',
@@ -25,11 +30,11 @@ const router = new Router({
       meta: {
         index: 1,
         title: '税务问答',
-        switch: false,
-        menuBar: { id: 1, imgFont: 'e675' },
+        // switch: false,
+        // menuBar: { id: 1, imgFont: 'e675' },
         menuBars: [
-          { id: 2, imgFont: 'e69f', name: '我的主页' },
-          { id: 11, imgFont: 'e6a0', name: '通知' }
+          { id: 2, imgFont: 'e69f', name: '我的主页' }
+          // { id: 11, imgFont: 'e6a0', name: '通知' }
         ]
       },
       component: Home
@@ -79,7 +84,7 @@ const router = new Router({
       component: AnswerList
     },
     {
-      path: '/answer/:id',
+      path: '/answer',
       name: 'answer',
       meta: {
         index: 6,
@@ -124,27 +129,56 @@ const router = new Router({
       meta: {
         index: 10,
         title: '热门讨论',
-        switch: false
+        menuBar: { id: 13, imgFont: 'e671', name: '分享' }
       },
       component: HotDiscuss
+    },
+    {
+      path: '/userlist/:id',
+      name: 'userlist',
+      meta: {
+        index: 11,
+        title: '我的粉丝',
+        switch: false
+      },
+      component: UserList
+    },
+    {
+      path: '/homepage/:id',
+      name: 'homepageother',
+      meta: {
+        index: 12,
+        title: 'TA的主页',
+        switch: false
+      },
+      component: HomePageOther
     }
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  //获取路由元信息
   let meta = to.meta
+  //设置标题头
   document.title = meta.title
+  //设置头部菜单
   utils.setHeader(meta.menuBar || {}, meta.menuBars || [], meta.switch)
 
-  //当从oauth重定向回应用，获取code值，携带code值跳转到当初离开的页面
   let _to = to.fullPath
+  //当从oauth重定向回应用，获取code值，携带code值跳转到当初离开的页面
   if (_to.includes('code')) {
     let _code = _to.split('?')[1].split('=')[1]
     let _path = from.path
+    //获取授权之前的路径
     let _currentPath = utils.loadFromLocal('currentPath')
     utils.removeFromLocal('currentPath')
+    //如果还没有sessionKey，则初始化用户登陆状态
+    if (utils.isEmpty(store.getters.sessionKey)) {
+      await utils.initUserLoginStatus(_code)
+    }
+    //重定向到授权之前的路径
     if (_path == '/' && _currentPath) {
-      next({ path: _currentPath, query: { code: _code } })
+      next({ path: _currentPath })
     }
   }
   next()

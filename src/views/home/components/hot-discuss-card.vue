@@ -1,16 +1,16 @@
 <template>
-  <!-- <router-link :to="{ name: 'discuss', params: { id: `${id}` }}"> -->
-  <div class="joo-discuss-card">
-    <p class="joo-card-title">{{title}}</p>
-    <p class="joo-card-desc">{{desc}}人参与讨论</p>
-    <img class="joo-card-tag" src="@/assets/imgs/hot.png" />
-  </div>
-  <!-- </router-link> -->
+  <router-link :to="{ name: 'discuss', params: { id: id }}">
+    <div class="joo-discuss-card">
+      <p class="joo-card-title">{{title}}</p>
+      <p class="joo-card-desc">{{count}}人参与讨论</p>
+      <img class="joo-card-tag" src="@/assets/imgs/hot.png" />
+    </div>
+  </router-link>
 </template>
 
 <script>
 export default {
-  props: ['title', 'desc', 'id']
+  props: ['title', 'count', 'id']
 }
 </script>
 <style lang="less" scoped>

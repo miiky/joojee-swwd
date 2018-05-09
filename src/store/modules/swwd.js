@@ -1,4 +1,4 @@
-import * as utils from '@/utils/index'
+import utils from '@/utils/utils'
 import Cookies from 'js-cookie'
 
 const state = {
@@ -176,6 +176,11 @@ const mutations = {
       imgUrl: [],
       problemTags: []
     }
+  },
+  resetPages(state) {
+    state.recommondPage = 1
+    state.attentionPage = 1
+    state.newestPage = 1
   }
 }
 

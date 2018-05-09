@@ -25,7 +25,6 @@
   </div>
 </template>
 <script>
-import bus from '@/utils/bus'
 import { TransferDom, Popup } from 'vux'
 
 export default {
@@ -60,7 +59,7 @@ export default {
   methods: {
     _handelMenuAction() {
       const _this = this
-      bus.$on('menu10', data => {
+      _this.$bus.$on('menu10', data => {
         _this.showMessageType = !_this.showMessageType
       })
     },
