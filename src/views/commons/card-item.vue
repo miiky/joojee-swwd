@@ -14,7 +14,7 @@
         <img v-show="showTag" class="item-tag-img" :src="tagImgUrl" />{{answer}}
       </div>
       <div class="item-footer">
-        <span class="item-tag" v-for="item of tagList" :key="item.id">{{item.name}}</span>
+        <span class="item-tag" v-for="item of tagListShow" :key="item.id">{{item.name}}</span>
         <span class="item-numbers">{{numbersText}}</span>
       </div>
     </div>
@@ -79,9 +79,51 @@ export default {
       selection: require('@/assets/imgs/selection.png')
     }
   },
+  methods: {
+    timeFilter: function(time) {
+      //当前时间
+      let _now = new Date().getTime()
+      //时间差
+      let _interval = _now - time
+      if (_interval <= 5 * 60 * 1000) {
+        return '刚刚'
+      } else if (_interval < 60 * 60 * 1000) {
+        return Number.parseInt(_interval / 1000 / 60) + '分钟前'
+      } else if (_interval < 24 * 60 * 60 * 1000) {
+        return Number.parseInt(_interval / 1000 / 60 / 60) + '小时前'
+      } else if (_interval < 48 * 60 * 60 * 1000) {
+        return '昨天'
+      } else if (_interval < 72 * 60 * 60 * 1000) {
+        return '前天'
+      } else if (_interval < 96 * 60 * 60 * 1000) {
+        return '3天前'
+      } else if (_interval < 144 * 60 * 60 * 1000) {
+        return '4天前'
+      } else if (_interval < 168 * 60 * 60 * 1000) {
+        return '5天前'
+      } else if (_interval < 192 * 60 * 60 * 1000) {
+        return '6天前'
+      } else if (_interval < 216 * 60 * 60 * 1000) {
+        return '7天前'
+      } else {
+        let _month = new Date(time).getMonth() + 1
+        let _day = new Date(time).getUTCDate()
+        return _month + '月' + _day + '日'
+      }
+    }
+  },
   computed: {
     numbersText: function() {
-      return '回答 ' + this.answerNum + ' • ' + '浏览 ' + this.browseNum
+      let _time = ''
+      if (!this.needHeader) {
+        // console.log(new Date(this.time.replace(/-/g, '/')))
+        _time = this.timeFilter(
+          new Date(this.time.replace(/-/g, '/')).getTime()
+        )
+      }
+      return (
+        _time + ' 回答 ' + this.answerNum + ' • ' + '浏览 ' + this.browseNum
+      )
     },
     tagImgUrl: function() {
       const _this = this
@@ -91,6 +133,13 @@ export default {
     showTag: function() {
       const _this = this
       return _this.tagType == 1 || _this.tagType == 2
+    },
+    tagListShow: function() {
+      if (this.tagList.length > 2) {
+        return this.tagList.slice(0, 2)
+      } else {
+        return this.tagList
+      }
     }
   },
   filters: {
@@ -110,7 +159,8 @@ export default {
       return names[val - 1]
     },
     timeFormat: function(val) {
-      return val.substr(5, 5)
+      let time = val.substr(5, 5)
+      return time
     }
   }
 }

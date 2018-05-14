@@ -14,6 +14,8 @@ import AskTwo from '@/views/question/ask-tag'
 
 import HotDiscuss from '@/views/discuss/hot-discuss'
 
+import Search from '@/views/search/index'
+
 import HomePage from '@/views/homepage/homepage'
 import HomePageOther from '@/views/homepage/homepage-other'
 import Message from '@/views/homepage/message'
@@ -23,19 +25,26 @@ import UserList from '@/views/homepage/user-list'
 const router = new Router({
   mode: 'history',
   base: '/swwd/',
-  routes: [
-    {
+  routes: [{
       path: '/',
       name: 'home',
       meta: {
         index: 1,
         title: '税务问答',
         // switch: false,
-        // menuBar: { id: 1, imgFont: 'e675' },
-        menuBars: [
-          { id: 2, imgFont: 'e69f', name: '我的主页' }
-          // { id: 11, imgFont: 'e6a0', name: '通知' }
-        ]
+        menuBar: {
+          id: 1,
+          imgFont: 'e675'
+        },
+        menuBars: [{
+          id: 2,
+          imgFont: 'e69f',
+          name: '我的主页'
+        }, {
+          id: 11,
+          imgFont: 'e6a0',
+          name: '通知'
+        }]
       },
       component: Home
     },
@@ -45,7 +54,11 @@ const router = new Router({
       meta: {
         index: 2,
         title: '问题详情',
-        menuBar: { id: 3, imgFont: 'e671', name: '分享' }
+        menuBar: {
+          id: 3,
+          imgFont: 'e671',
+          name: '分享'
+        }
       },
       component: Question
     },
@@ -55,7 +68,10 @@ const router = new Router({
       meta: {
         index: 3,
         title: '提问',
-        menuBar: { id: 4, name: '下一步' }
+        menuBar: {
+          id: 4,
+          name: '下一步'
+        }
       },
       component: AskOne
     },
@@ -65,7 +81,10 @@ const router = new Router({
       meta: {
         index: 4,
         title: '添加标签',
-        menuBar: { id: 5, name: '发布' }
+        menuBar: {
+          id: 5,
+          name: '发布'
+        }
       },
       component: AskTwo
     },
@@ -75,10 +94,21 @@ const router = new Router({
       meta: {
         index: 5,
         title: '回答',
-        menuBars: [
-          { id: 6, imgFont: 'e671', name: '分享' },
-          { id: 7, imgFont: 'e681', name: '举报' },
-          { id: 8, imgFont: 'e691', name: '采纳' }
+        menuBars: [{
+            id: 6,
+            imgFont: 'e671',
+            name: '分享'
+          },
+          {
+            id: 7,
+            imgFont: 'e681',
+            name: '举报'
+          },
+          {
+            id: 8,
+            imgFont: 'e691',
+            name: '采纳'
+          }
         ]
       },
       component: AnswerList
@@ -89,7 +119,10 @@ const router = new Router({
       meta: {
         index: 6,
         title: '回答',
-        menuBar: { id: 9, name: '发布' }
+        menuBar: {
+          id: 9,
+          name: '发布'
+        }
       },
       component: Answer
     },
@@ -109,7 +142,10 @@ const router = new Router({
       meta: {
         index: 8,
         title: '通知',
-        menuBar: { id: 10, imgFont: 'e618' }
+        menuBar: {
+          id: 10,
+          imgFont: 'e618'
+        }
       },
       component: Message
     },
@@ -119,7 +155,10 @@ const router = new Router({
       meta: {
         index: 9,
         title: '个人资料',
-        menuBar: { id: 12, name: '保存' }
+        menuBar: {
+          id: 12,
+          name: '保存'
+        }
       },
       component: Userinfo
     },
@@ -129,7 +168,11 @@ const router = new Router({
       meta: {
         index: 10,
         title: '热门讨论',
-        menuBar: { id: 13, imgFont: 'e671', name: '分享' }
+        menuBar: {
+          id: 13,
+          imgFont: 'e671',
+          name: '分享'
+        }
       },
       component: HotDiscuss
     },
@@ -152,6 +195,16 @@ const router = new Router({
         switch: false
       },
       component: HomePageOther
+    },
+    {
+      path: '/search',
+      name: 'search',
+      meta: {
+        index: 13,
+        title: '搜索',
+        navMode: false,
+      },
+      component: Search
     }
   ]
 })
@@ -162,7 +215,7 @@ router.beforeEach(async (to, from, next) => {
   //设置标题头
   document.title = meta.title
   //设置头部菜单
-  utils.setHeader(meta.menuBar || {}, meta.menuBars || [], meta.switch)
+  utils.setHeader(meta.menuBar || {}, meta.menuBars || [], meta.switch, meta.navMode)
 
   let _to = to.fullPath
   //当从oauth重定向回应用，获取code值，携带code值跳转到当初离开的页面
@@ -178,7 +231,9 @@ router.beforeEach(async (to, from, next) => {
     }
     //重定向到授权之前的路径
     if (_path == '/' && _currentPath) {
-      next({ path: _currentPath })
+      next({
+        path: _currentPath
+      })
     }
   }
   next()

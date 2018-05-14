@@ -60,7 +60,7 @@ export default {
         }
         _this.$net.updateSelfIntroduction(this.desc)
         _this.showPopupAction({
-          type: true,
+          type: 'success',
           msg: '修改个人简介成功！'
         })
       })

@@ -8,11 +8,12 @@ const state = {
   sessionKey: '', //jeebbs凭证
   expiresDate: 0, // cookie过期时间
   userId: '', //用户Id
+  isClientLogin: false, //客户端登陆状态
   requests: [], // 所有的请求栈
   loading: false, //页面toast模式
   topLoading: false, //页面顶部菊花模式
   showPopup: false, //顶部pop模式提示
-  popupType: false, //pop提示类型  true：正确；false：错误
+  popupType: 'info', //pop提示类型  ['success','info','warning','error']
   popupMsg: '' // pop提示内容
 }
 
@@ -52,6 +53,9 @@ const getters = {
   },
   popupMsg(state) {
     return state.popupMsg
+  },
+  isClientLogin(state) {
+    return state.isClientLogin
   }
 }
 
@@ -91,6 +95,9 @@ const mutations = {
     Cookies.set('userId', payload, {
       expires: state.expiresDate
     })
+  },
+  isClientLogin(state, payload) {
+    state.isClientLogin = payload
   },
   /**请求入栈 */
   pushRequest(state, payload) {
@@ -139,7 +146,9 @@ const mutations = {
 }
 
 const actions = {
-  showPopupAction({ commit }, payload) {
+  showPopupAction({
+    commit
+  }, payload) {
     commit('showPopup', payload)
     setTimeout(() => {
       commit('hidePopup', false)

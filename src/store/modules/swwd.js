@@ -68,12 +68,18 @@ const mutations = {
     payload.forEach(element => {
       // 处理回复内容
       let replys =
-        element.replys.length == 0
-          ? [{ content: '', replyType: 0 }]
-          : element.replys
+        element.replys.length == 0 ?
+        [{
+          content: '',
+          replyType: 0
+        }] :
+        element.replys
       // 处理标签
       let tags =
-        element.tags.length == 0 ? [{ id: 0, name: '无标签' }] : element.tags
+        element.tags.length == 0 ? [{
+          id: 0,
+          name: '无标签'
+        }] : element.tags
       //
       state.recommondList.push({
         id: element.id,
@@ -81,7 +87,8 @@ const mutations = {
         replys: replys,
         tags: tags,
         viewCount: element.viewCount || 0,
-        replyCount: element.replyCount || 0
+        replyCount: element.replyCount || 0,
+        time: element.createTime
       })
     })
     // var hash = {}
@@ -98,12 +105,18 @@ const mutations = {
     payload.forEach(element => {
       // 处理回复内容
       let replys =
-        element.replys.length == 0
-          ? [{ content: '', replyType: 0 }]
-          : element.replys
+        element.replys.length == 0 ?
+        [{
+          content: '',
+          replyType: 0
+        }] :
+        element.replys
       // 处理标签
       let tags =
-        element.tags.length == 0 ? [{ id: 0, name: '无标签' }] : element.tags
+        element.tags.length == 0 ? [{
+          id: 0,
+          name: '无标签'
+        }] : element.tags
       //
       state.newestList.push({
         id: element.id,
@@ -111,7 +124,8 @@ const mutations = {
         replys: replys,
         tags: tags,
         viewCount: element.viewCount || 0,
-        replyCount: element.replyCount || 0
+        replyCount: element.replyCount || 0,
+        time: element.createTime
       })
     })
     //去重
@@ -129,14 +143,20 @@ const mutations = {
     payload.forEach(element => {
       // 处理回复内容
       let _replys =
-        element.problem.replys.length == 0
-          ? [{ content: '', replyType: 0 }]
-          : element.problem.replys
+        element.problem.replys.length == 0 ?
+        [{
+          content: '',
+          replyType: 0
+        }] :
+        element.problem.replys
       // 处理标签
       let tags =
-        element.problem.tags.length == 0
-          ? [{ id: 0, name: '无标签' }]
-          : element.problem.tags
+        element.problem.tags.length == 0 ?
+        [{
+          id: 0,
+          name: '无标签'
+        }] :
+        element.problem.tags
       //
       state.attentionList.push({
         id: element.problem.id,
@@ -147,7 +167,7 @@ const mutations = {
         replyCount: element.problem.replyCount || 0,
         name: element.user.realname,
         profilePicture: element.user.profilePicture,
-        time: element.opreteTime.split(' ')[0]
+        time: element.opreteTime
       })
     })
     // var hash = {}

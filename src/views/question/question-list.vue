@@ -15,7 +15,9 @@
         <i class="iconfont" :class="showDescDetail?'icon-shouqi':'icon-zhankai'" style="font-size: 13px;"></i>
       </div>
       <div class="card-footer">
-        <img class="card-avatar" :src="creater.profilePicture" />
+        <router-link :to="{ name: 'homepageother', params: { id: creater.id }}">
+          <img class="card-avatar" :src="creater.profilePicture" />
+        </router-link>
         <div class="card-name">{{creater.realname}}</div>
         <div class="card-others">{{createTime+' • 浏览 '+viewCount+' • 回答 '+replyCount}}</div>
       </div>
@@ -27,19 +29,22 @@
     <div v-if="bestReply.length != 0">
       <CardItemAnswer :isBestAdopt="true" v-for="item of bestReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
         :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
-        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" @upPost="upPost"></CardItemAnswer>
+        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :isMyProblem="creater.id == userId" :isMyAnswer="userId == item.replyer.id"
+        @upPost="upPost(item)"></CardItemAnswer>
     </div>
     <div v-if="goodReply.length != 0">
       <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">精选回答</span>
       <CardItemAnswer v-for="item of goodReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
         :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
-        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" @upPost="upPost"></CardItemAnswer>
+        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :isMyProblem="creater.id == userId" :isMyAnswer="userId == item.replyer.id"
+        @upPost="upPost(item)" @bestAdopt="bestAdopt(item)"></CardItemAnswer>
     </div>
     <div v-if="otherReply.length != 0" style="padding-bottom:50px;">
       <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">其他回答</span>
       <CardItemAnswer v-for="item of otherReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
         :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
-        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" @upPost="upPost"></CardItemAnswer>
+        :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :isMyProblem="creater.id == userId" :isMyAnswer="userId == item.replyer.id"
+        @upPost="upPost(item)" @bestAdopt="bestAdopt(item)"></CardItemAnswer>
     </div>
     <Footer class="joo-question-footer">
       <template slot="content">
@@ -48,7 +53,6 @@
           <span> {{collectNum}}人收藏</span>
         </div>
         <div class="joo-answer" @click="toAnswer">我来回答</div>
-
       </template>
     </Footer>
     <div v-transfer-dom>
@@ -182,6 +186,9 @@ export default {
       await _this.$net.listReplys(_this.problemId).then(res => {
         console.log('_listReplys', res)
         res = res.data.entities
+        _this.bestReply = []
+        _this.goodReply = []
+        _this.otherReply = []
         res.forEach(e => {
           if (e.replyType == '2') {
             _this.bestReply.push(e)
@@ -225,6 +232,7 @@ export default {
         'none'
     },
     collect() {
+      const _this = this
       if (_this.$utils.isEmpty(this.sessionKey)) {
         _this.$utils.oauth()
         return
@@ -239,15 +247,41 @@ export default {
       this.isCollect = !this.isCollect
     },
     upPost(item) {
+      const _this = this
+      console.log('item:', item)
       if (_this.$utils.isEmpty(this.sessionKey)) {
         _this.$utils.oauth()
         return
+      }
+      item.hasUpPost = !item.hasUpPost
+      if (item.hasUpPost) {
+        item.upCount++
+      } else {
+        item.upCount--
       }
       if (item.hasUpPost) {
         _this.$net.upReply(item.id)
       } else {
         _this.$net.cancelUpReply(item.id)
       }
+    },
+    bestAdopt(item) {
+      const _this = this
+      // console.log(item)
+      if (_this.userId != _this.creater.id) {
+        _this.showPopupAction({
+          type: 'error',
+          msg: '您没有权限操作！'
+        })
+        return
+      }
+      _this.$net.setBestReply(item.problemId, item.id).then(res => {
+        _this.showPopupAction({
+          type: 'success',
+          msg: '当前答案已设置为最佳采纳！'
+        })
+        _this._listReplys()
+      })
     }
   }
 }
@@ -310,22 +344,29 @@ export default {
       }
     }
     .card-footer {
+      position: relative;
       line-height: 30px;
       height: 30px;
       .card-avatar {
-        float: left;
+        position: absolute;
+        left: 0;
+        top: 0;
         height: 30px;
         width: 30px;
         border-radius: 50%;
       }
       .card-name {
-        float: left;
-        margin-left: 10px;
+        position: absolute;
+        top: 0;
+        left: 35px;
+        // margin-left: 10px;
         color: #a5a5a5;
         font-size: 13px;
       }
       .card-others {
-        float: right;
+        position: absolute;
+        right: 0;
+        top: 0;
         color: #a5a5a5;
         font-size: 13px;
       }
@@ -366,6 +407,17 @@ export default {
       color: #a5a5a5;
       font-size: 15px;
     }
+  }
+}
+@media screen and (max-width: 350px) {
+  .card-name {
+    width: 70px;
+    text-overflow: -o-ellipsis-lastline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
   }
 }
 </style>

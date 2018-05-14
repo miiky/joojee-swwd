@@ -50,8 +50,8 @@
             <div class="content-text">暂无内容</div>
           </div>
           <div v-if="dynamicsList.length != 0">
-            <CardItem v-for="(item,index) of dynamicsList" :key="index" :id="item.problem.id" :title="item.problem.title" :answer="item.problem.replys[0].content"
-              :tagList="item.problem.tags" :tagType="item.problem.replys[0].replyType" :browseNum="item.problem.viewCount"
+            <CardItem v-for="(item,index) of dynamicsList" :key="index" :id="item.problem.id" :title="item.problem.title" :answer="item.problem.replys.length == 0?'':item.problem.replys[0].content"
+              :tagList="item.problem.tags" :tagType="item.problem.replys.length == 0?'':item.problem.replys[0].replyType" :browseNum="item.problem.viewCount"
               :answerNum="item.problem.replyCount" :needHeader="true" :name="''" :acitonType="item.type" :avatar="''" :time="item.opreteTime"
               :needAvatar="false"></CardItem>
           </div>
@@ -89,8 +89,9 @@
           </div>
           <div v-if="replyTotal != 0">
             <p class="total">共{{replyTotal}}条</p>
-            <CardItem v-for="(item,index) of replyList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
-              :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+            <CardItem v-for="(item,index) of replyList" :key="index" :id="item.id" :title="item.title" :answer="item.replys.length ==0?'':item.replys[0].content"
+              :tagList="item.tags" :tagType="item.replys.length ==0?'':item.replys[0].replyType" :time="item.createTime" :browseNum="item.viewCount"
+              :answerNum="item.replyCount"></CardItem>
           </div>
         </div>
       </swiper-item>
@@ -103,8 +104,9 @@
           </div>
           <div v-if="collectTotal != 0">
             <p class="total">共{{collectTotal}}条</p>
-            <CardItem v-for="(item,index) of collectList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
-              :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+            <CardItem v-for="(item,index) of collectList" :key="index" :id="item.id" :title="item.title" :answer="item.replys.length ==0?'':item.replys[0].content"
+              :tagList="item.tags" :tagType="item.replys.length ==0?'':item.replys[0].replyType" :browseNum="item.viewCount"
+              :answerNum="item.replyCount" :time="item.createTime"></CardItem>
           </div>
         </div>
       </swiper-item>

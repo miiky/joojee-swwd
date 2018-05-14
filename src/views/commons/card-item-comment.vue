@@ -4,7 +4,7 @@
     <div class="item-content">
       <div class="item-top">
         <div class="item-name">{{name}}</div>
-        <div class="item-fabulous" @click="upReply"><i class="iconfont icon-dianzan" :class="isReply?'isreply':''"></i></div>
+        <div class="item-fabulous" @click="upReply"><i class="iconfont icon-dianzan" :class="hasUpPost?'isreply':''"></i></div>
       </div>
       <div class="item-desc">{{content}}</div>
       <div class="item-time">{{time}}
@@ -15,11 +15,6 @@
 </template>
 <script>
 export default {
-  data() {
-    return {
-      isReply: false
-    }
-  },
   props: {
     id: {
       type: Number,
@@ -46,13 +41,9 @@ export default {
       required: true
     }
   },
-  mounted() {
-    this.isReply = this.hasUpPost
-  },
   methods: {
     upReply() {
-      this.isReply = !this.isReply
-      this.$emit('upReply', { isReply: this.isReply, id: this.id })
+      this.$emit('upReply')
     }
   }
 }

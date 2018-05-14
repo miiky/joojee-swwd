@@ -36,7 +36,8 @@
             <p>暂无推荐内容</p>
           </div>
           <CardItem v-for="(item,index) of recommondList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
-            :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+            :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"
+            :time="item.time"></CardItem>
         </div>
       </swiper-item>
       <swiper-item>
@@ -46,13 +47,14 @@
             <p>暂无最新内容</p>
           </div>
           <CardItem v-for="(item,index) of newestList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
-            :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+            :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"
+            :time="item.time"></CardItem>
         </div>
       </swiper-item>
     </swiper>
     <load-more v-show="showLoadmore" :show-loading="showLoading" :tip="loadMoreTips" background-color="#fbf9fe" @click.native="loadMore"></load-more>
     <div class="joo-question-btn" @click="toAsk">
-      <i class="iconfont icon-tiwen" style="font-size: 24px;"></i>
+      <i class="iconfont icon-tiwen"></i>
     </div>
   </div>
 </template>
@@ -116,6 +118,7 @@ export default {
     const _this = this
     this._handelMenuAction()
     this.$refs.sticky.bindSticky()
+
     //获取业务数据
     if (_this.serverAccessToken == '') {
       return
@@ -154,6 +157,9 @@ export default {
     },
     _handelMenuAction() {
       const _this = this
+      _this.$bus.$on('menu1', data => {
+        _this.$router.push('/search')
+      })
       _this.$bus.$on('menu2', data => {
         if (_this.$utils.isEmpty(this.sessionKey)) {
           _this.$utils.oauth()
@@ -335,6 +341,9 @@ export default {
     color: white;
     font-size: 26px;
     font-weight: 500;
+    i {
+      font-size: 24px;
+    }
   }
   .no-content {
     text-align: center;

@@ -1,6 +1,6 @@
 <template>
   <div class="joo-taxtarea">
-    <textarea v-focus v-model="text" ref="myTaxtarea" utocomplete="off" contenteditable="true" autocapitalize="on" autocorrect="off"
+    <textarea v-focus v-model="text" ref="myTaxtarea" autocomplete="off" contenteditable="true" autocapitalize="on" autocorrect="off"
       spellcheck="false" @input="input" @focus="focus" @blur="blur" :maxlength="maxLength" :placeholder="placeholder"></textarea>
     <div class="submit" @click="submit">{{okText}}</div>
     <div class="count" :class="currentLength==maxLength?'max-count':''">{{currentLength}}/{{maxLength}}</div>

@@ -10,12 +10,15 @@ import promise from 'es6-promise'
 promise.polyfill()
 
 import '@/assets/font/iconfont.css'
-
-// import iView from 'iview'
 import 'iview/dist/styles/iview.css'
-// Vue.use(iView)
-import { Flexbox, FlexboxItem } from 'vux'
 
+import iView from 'iview'
+Vue.use(iView)
+
+import {
+  Flexbox,
+  FlexboxItem
+} from 'vux'
 Vue.component('flexbox', Flexbox)
 Vue.component('flexbox-item', FlexboxItem)
 
@@ -26,6 +29,8 @@ Vue.prototype.$utils = utils
 Vue.prototype.$bus = bus
 Vue.prototype.$net = net
 
+utils.initHeader()
+
 // FastClick.attach(document.body)
 
 Vue.config.productionTip = false
@@ -34,8 +39,5 @@ Vue.config.productionTip = false
 new Vue({
   router,
   store,
-  render: h => h(App),
-  created() {
-    this.$utils.initHeader()
-  }
+  render: h => h(App)
 }).$mount('#app-box')

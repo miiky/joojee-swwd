@@ -13,18 +13,11 @@
         </button>
       </div>
     </div>
-    <div v-transfer-dom>
-      <popup v-model="showPopup" position="top" :show-mask="false">
-        <div class="popup-msg" :class="popupType?'popup-msg-success':'popup-msg-error'">
-          <i class="iconfont" :class="popupType?'icon-queding1':'icon-xinxiyouwu1'"></i>{{popupMsg}}
-        </div>
-      </popup>
-    </div>
   </div>
 </template>
 <script>
 import { TransferDom, Popup } from 'vux'
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 
 export default {
   directives: {
@@ -32,15 +25,6 @@ export default {
   },
   components: {
     Popup
-  },
-  watch: {
-    showPopup: function(val) {
-      if (val) {
-        setTimeout(() => {
-          this.showPopup = false
-        }, 1500)
-      }
-    }
   },
   computed: {
     ...mapGetters(['problem'])
@@ -68,6 +52,7 @@ export default {
   },
   methods: {
     ...mapMutations(['clearProblem']),
+    ...mapActions(['showPopupAction']),
     _handelMenuAction() {
       const _this = this
       _this.$bus.$on('menu5', data => {
@@ -97,11 +82,8 @@ export default {
     setTitle() {
       document.title = '添加标签（' + this.chooseList.length + '/4）'
     },
-    submit() {
+    async submit() {
       const _this = this
-      _this.popupType = true
-      _this.popupMsg = ' 发布成功！'
-      _this.showPopup = true
 
       let title = _this.problem.title
       let content = _this.problem.content
@@ -114,14 +96,17 @@ export default {
         problemTags.push(item.id)
       })
       _this.clearProblem()
-      _this.$net
+      await _this.$net
         .submitProblem(title, content, problemTags, imgUrl)
         .then(res => {
-          console.log(res)
+          _this.showPopupAction({
+            type: 'success',
+            msg: '发布成功！'
+          })
+          setTimeout(() => {
+            _this.$router.push('/')
+          }, 2000)
         })
-      setTimeout(() => {
-        _this.$router.push('/')
-      }, 1500)
     }
   }
 }

@@ -1,9 +1,11 @@
 <template>
   <div class="user-list">
     <div class="user-item" v-for="item of list" :key="item.id">
-      <div class="item-avatar">
-        <img :src="item.profilePicture" />
-      </div>
+      <router-link :to="{ name: 'homepageother', params: { id: item.id }}">
+        <div class="item-avatar">
+          <img :src="item.profilePicture" />
+        </div>
+      </router-link>
       <div class="item-content">
         <p class="item-name">{{item.realname}}<i class="iconfont " :class="item.gendar==1?'icon-nan1 gender-male':'icon-nv1 gender-female'"></i></p>
         <p class="item-desc">{{item.selfIntroduction || '暂无'}}</p>
@@ -54,24 +56,28 @@ export default {
       }
     },
     _listMyAttent() {
+      const _this = this
       _this.$net.listMyAttent().then(res => {
         console.log(res.data.entities)
         this.list = res.data.entities
       })
     },
     _listMyFans() {
+      const _this = this
       _this.$net.listMyFans().then(res => {
         console.log(res.data.entities)
         this.list = res.data.entities
       })
     },
     _listSomeoneAttent() {
+      const _this = this
       _this.$net.listSomeoneAttent(this.id).then(res => {
         console.log(res.data.entities)
         this.list = res.data.entities
       })
     },
     _listSomeoneFans() {
+      const _this = this
       _this.$net.listSomeoneFans(this.id).then(res => {
         console.log(res.data.entities)
         this.list = res.data.entities

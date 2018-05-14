@@ -48,8 +48,8 @@
             <div class="content-text">暂无内容</div>
           </div>
           <div v-if="dynamicsList.length != 0">
-            <CardItem v-for="(item,index) of dynamicsList" :key="index" :id="item.problem.id" :title="item.problem.title" :answer="item.problem.replys[0].content"
-              :tagList="item.problem.tags" :tagType="item.problem.replys[0].replyType" :browseNum="item.problem.viewCount"
+            <CardItem v-for="(item,index) of dynamicsList" :key="index" :id="item.problem.id" :title="item.problem.title" :answer="item.problem.replys.length == 0?'':item.problem.replys[0].content"
+              :tagList="item.problem.tags" :tagType="item.problem.replys.length == 0?'':item.problem.replys[0].replyType" :browseNum="item.problem.viewCount"
               :answerNum="item.problem.replyCount" :needHeader="true" :name="''" :acitonType="item.type" :avatar="''" :time="item.opreteTime"
               :needAvatar="false"></CardItem>
           </div>
@@ -87,8 +87,9 @@
           </div>
           <div v-if="replyTotal != 0">
             <p class="total">共{{replyTotal}}条</p>
-            <CardItem v-for="(item,index) of replyList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
-              :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+            <CardItem v-for="(item,index) of replyList" :key="index" :id="item.id" :title="item.title" :answer="item.replys.length ==0?'':item.replys[0].content"
+              :tagList="item.tags" :tagType="item.replys.length ==0?'':item.replys[0].replyType" :browseNum="item.viewCount"
+              :answerNum="item.replyCount" :time="item.createTime"></CardItem>
           </div>
         </div>
       </swiper-item>
@@ -101,8 +102,9 @@
           </div>
           <div v-if="collectTotal != 0">
             <p class="total">共{{collectTotal}}条</p>
-            <CardItem v-for="(item,index) of collectList" :key="index" :id="item.id" :title="item.title" :answer="item.replys[0].content"
-              :tagList="item.tags" :tagType="item.replys[0].replyType" :browseNum="item.viewCount" :answerNum="item.replyCount"></CardItem>
+            <CardItem v-for="(item,index) of collectList" :key="index" :id="item.id" :title="item.title" :answer="item.replys.length ==0?'':item.replys[0].content"
+              :tagList="item.tags" :tagType="item.replys.length ==0?'':item.replys[0].replyType" :browseNum="item.viewCount"
+              :answerNum="item.replyCount" :time="item.createTime"></CardItem>
           </div>
         </div>
       </swiper-item>
@@ -262,6 +264,7 @@ export default {
       })
     },
     follow() {
+      const _this = this
       if (_this.hasAttent) {
         _this.$net.cancelAttentUser(_this.userId)
         _this.hasAttent = false
@@ -278,6 +281,14 @@ export default {
     statusFormat: function(val) {
       //checkStatus; // 问题审核状态 0.审核中 1.审核成功 2.审核失败
       return val == 0 ? '审核中' : val == 1 ? '审核成功' : '审核失败'
+    },
+    contentFormat: function(val) {
+      console.log(val === undefined)
+      if (val === undefined) {
+        return ''
+      } else {
+        return val.content
+      }
     }
   }
 }
@@ -378,6 +389,7 @@ export default {
       background-color: white;
       font-size: 15px;
       padding: 15px;
+      margin-bottom: 10px;
       .item-title {
         line-height: 25px;
         color: #333333;

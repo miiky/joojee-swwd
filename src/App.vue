@@ -9,24 +9,14 @@
       <router-view></router-view>
     </transition>
     <!-- </keep-alive> -->
-    <div v-transfer-dom>
-      <popup :value="showPopup" position="top" :show-mask="false">
-        <div class="popup-msg" :class="popupType?'popup-msg-success':'popup-msg-error'">
-          <i class="iconfont msg-icon" :class="popupType?'icon-queding1':'icon-xinxiyouwu1'"></i>{{popupMsg}}
-        </div>
-      </popup>
-    </div>
+    <miiky-popup :show="showPopup" :info="popupMsg" :type="popupType"></miiky-popup>
   </div>
 </template>
 
 <script>
-import {
-  Popup,
-  LoadMore,
-  Loading,
-  TransferDomDirective as TransferDom
-} from 'vux'
-import { mapGetters, mapState, mapMutations } from 'vuex'
+import { LoadMore, Loading, TransferDomDirective as TransferDom } from 'vux'
+import { mapGetters, mapState, mapMutations, mapActions } from 'vuex'
+import MiikyPopup from '@/views/commons/miiky-popup.vue'
 
 export default {
   directives: {
@@ -55,11 +45,13 @@ export default {
       'serverAccessToken',
       'userAccessToken',
       'sessionKey',
+      'isClientLogin',
       'loading',
       'topLoading',
       'showPopup',
       'popupType',
-      'popupMsg'
+      'popupMsg',
+      'userId'
     ])
   },
   async created() {
@@ -68,12 +60,15 @@ export default {
     if (_this.$utils.isEmpty(_this.serverAccessToken)) {
       await _this._initToken()
     }
-    // await Utils.initOauth()
-    // await _this._initUserId()
+    if (!_this.$utils.isEmpty(_this.userId)) {
+      _this.$utils.initSocket(_this.userId)
+    }
+    _this._handleSockMsg()
   },
-  components: { Popup, LoadMore, Loading },
+  components: { LoadMore, Loading, MiikyPopup },
   methods: {
     ...mapMutations(['setServerAccessToken', 'setUserId']),
+    ...mapActions(['showPopupAction']),
     async _initToken() {
       // 获取token
       const _this = this
@@ -82,6 +77,19 @@ export default {
         _this.setServerAccessToken({
           token: res.data.access_token,
           expires: res.data.expires_in
+        })
+      })
+    },
+    _handleSockMsg() {
+      const _this = this
+      _this.$bus.$on('handleSockMsg', data => {
+        console.log('data', data)
+        let obj = JSON.parse(data)
+        let msg = '【' + obj.realname + '】' + obj.operateDesc
+        _this.showPopupAction({
+          type: 'info',
+          msg: msg,
+          time: 3000
         })
       })
     }
@@ -148,5 +156,10 @@ slide-right-enter-active,
 .slide-left-leave-active {
   opacity: 0;
   transform: translate3d(-100%, 0, 0);
+}
+
+.item-poptip {
+  min-width: 130px;
+  margin-right: 15px;
 }
 </style>

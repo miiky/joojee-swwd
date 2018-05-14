@@ -1,12 +1,14 @@
 import router from '@/router/index'
 import store from '@/store/index'
 import bus from '@/utils/bus'
-import { querystring } from 'vux'
+import {
+  querystring
+} from 'vux'
 import Cookies from 'js-cookie'
 import net from '@/network/index'
 
 let utils = {}
-utils.isWeixn = function() {
+utils.isWeixn = function () {
   var ua = navigator.userAgent.toLowerCase()
   if (ua.match(/MicroMessenger/i) == 'micromessenger') {
     return true
@@ -29,7 +31,7 @@ utils.isEmpty = value => {
 /**
  * 判断是否在税企通里
  */
-utils.isJoojee = function() {
+utils.isJoojee = function () {
   var ua = navigator.userAgent.toLowerCase()
   if (ua.includes('joojee')) {
     return true
@@ -83,12 +85,14 @@ utils.removeFromLocal = name => {
 }
 
 utils.initHeader = () => {
-  sqt.config({ debug: false })
+  sqt.config({
+    debug: false
+  })
 }
-utils.setHeader = (menuBar, menuBars, mode = true) => {
+utils.setHeader = (menuBar, menuBars, mode = true, navMode = true) => {
   let options = {
     navConfig: {
-      switch: true,
+      switch: navMode,
       animation: true
     },
     menuConfig: {
@@ -96,11 +100,23 @@ utils.setHeader = (menuBar, menuBars, mode = true) => {
       menuBar: menuBar,
       menuBars: menuBars
     },
-    success: function(res) {
+    success: function (res) {
       bus.$emit('menu' + res.id, res)
     }
   }
+  console.log(options)
   sqt.showNavigation(options)
+}
+
+utils.isClientLogin = () => {
+  if (!utils.isJoojee()) {
+    return
+  }
+  sqt.getLogin({
+    success: (res) => {
+      store.commit('isClientLogin', res.status)
+    }
+  })
 }
 
 utils.initOauth = async () => {
@@ -111,30 +127,30 @@ utils.initOauth = async () => {
     return
   }
   //如果code为空并且openid也为空，则直接跳转oauth授权去获取code
-  if (isEmpty(code) && isEmpty(store.getters.sessionKey)) {
-    oauth()
+  if (utils.isEmpty(code) && utils.isEmpty(store.getters.sessionKey)) {
+    utils.oauth()
     return
   }
   //如果已经有了code但是没有openid则去获取token
-  if (isEmpty(store.getters.userAccessToken)) {
+  if (utils.isEmpty(store.getters.userAccessToken)) {
     //请求获取token
-    await initUserLoginStatus(code)
+    await utils.initUserLoginStatus(code)
   }
 }
 
 utils.initUserLoginStatus = async code => {
   //请求获取token
-  await initUserToken(code)
+  await utils.initUserToken(code)
   //请求获取sessionKey
-  await initSessionKey()
+  await utils.initSessionKey()
   //请求获取userId
-  await initUserId()
+  await utils.initUserId()
 }
 
 utils.oauth = () => {
   //记录当前路由，然后跳转获取code，便于重定向回应用后回到操作前的页面
   let currentPath = router.currentRoute.fullPath
-  saveToLocal('currentPath', currentPath)
+  utils.saveToLocal('currentPath', currentPath)
   //跳转获取code
   window.location.href = net.redirect_uri_for_code
 }
@@ -166,7 +182,43 @@ utils.initUserId = async () => {
   await net.getUserId().then(res => {
     let userId = res.data.entities[0].userId
     store.commit('setUserId', userId)
+    utils.initSocket(userId)
   })
+}
+
+
+
+utils.initSocket = sockKey => {
+  //注册并建立webSocket通信
+  let sock = new SockJS('https://websocket.joojee.cn/push')
+  sock.onopen = () => {
+    console.log('open connection of key: ' + sockKey)
+    let jsonobj = {
+      accessToken: sockKey,
+    }
+    let jsonStr = JSON.stringify(jsonobj)
+    sock.send(jsonStr)
+  }
+  //监听webSocket消息
+  sock.onmessage = (e) => {
+    let data = typeof e.data == 'string' ? e.data : JSON.parse(e.data)
+    console.log('message', data)
+    if (data == '收到') {
+      return
+    }
+    utils.handleSocketMessage(data)
+  }
+}
+
+/**
+ *  处理websocket推送消息
+ *  1、建立连接初始化消息
+ *  2、有已读消息时获取推送信息，参数为消息id
+ *  3、有新的待办事项消息产生，参数为新的消息对象
+ */
+utils.handleSocketMessage = data => {
+  //新的待办事项消息，组装新消息放入消息列表
+  bus.$emit('handleSockMsg', data)
 }
 
 export default utils

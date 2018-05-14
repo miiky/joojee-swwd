@@ -15,10 +15,10 @@
               <div class="no-more">没有匹配的问题</div>
             </li>
             <li v-for="item of searchList" :key="item.id">
-              <router-link :to="{ name: 'question', params: { id: `${item.id}` }}">
+              <router-link :to="{ name: 'question', params: { id: item.id }}">
                 <div class="select-item">
                   <div class="item-title" v-html="item.title"></div>
-                  <div class="item-desc">{{'回答 '+`${item.replyCount}`+' • 浏览 '+`${item.viewCount}`+' • '+`${item.createTime}`}}</div>
+                  <div class="item-desc">{{'回答 '+item.replyCount+' • 浏览 '+item.viewCount+' • '+item.createTime}}</div>
                 </div>
               </router-link>
             </li>
@@ -50,13 +50,6 @@
         </flexbox>
       </div>
     </div>
-    <div v-transfer-dom>
-      <popup v-model="showError" position="top" :show-mask="false">
-        <div class="error-msg" style="background-color: white; color: red;font-size:14px;text-align: center; padding: 12px;border-bottom:1px solid #f8f8f8;">
-          <i class="iconfont icon-xinxiyouwu1"></i> 请先描述您的问题！
-        </div>
-      </popup>
-    </div>
   </div>
 </template>
 <script>
@@ -65,7 +58,7 @@ import BScroll from 'better-scroll'
 
 import autosize from 'autosize'
 
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 export default {
   directives: {
     TransferDom,
@@ -89,7 +82,6 @@ export default {
       imgList: [],
       result: null,
       index: 0,
-      showError: false,
 
       showSelect: false,
       searchList: []
@@ -128,6 +120,7 @@ export default {
   },
   methods: {
     ...mapMutations(['setProblemTitle', 'setProblemTags']),
+    ...mapActions(['showPopupAction']),
     _initSelectDiv() {
       this.$nextTick(() => {
         this.selectScroll = new BScroll(this.$refs.selectDiv, {
@@ -149,7 +142,10 @@ export default {
       const _this = this
       _this.$bus.$on('menu4', data => {
         if (_this.$utils.isEmpty(_this.title)) {
-          _this.showError = true
+          _this.showPopupAction({
+            type: 'error',
+            msg: '请先描述您的问题！'
+          })
           return
         }
         _this.setProblemTitle({

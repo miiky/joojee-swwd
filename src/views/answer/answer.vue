@@ -101,7 +101,7 @@ export default {
       const _this = this
       if (_this.content == '') {
         _this.showPopupAction({
-          type: false,
+          type: 'error',
           msg: '请填写回复内容'
         })
         return
@@ -114,7 +114,7 @@ export default {
         .submitReply(_this.answer.id, _this.content, imgUrl)
         .then(res => {
           _this.showPopupAction({
-            type: true,
+            type: 'success',
             msg: '发布成功！'
           })
           setTimeout(() => {

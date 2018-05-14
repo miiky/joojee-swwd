@@ -4,7 +4,9 @@
     <div class="joo-answer-title">{{problemTitle}}</div>
     <div class="joo-answer-card">
       <div class="card-top">
-        <img class="top-avatar" :src="profilePicture" />
+        <router-link :to="{ name: 'homepageother', params: { id: replyerId }}">
+          <img class="top-avatar" :src="profilePicture" />
+        </router-link>
         <div class="top-text">
           <p class="top-name">{{realname}}</p>
           <p class="top-desc">{{selfIntroduction}}</p>
@@ -26,7 +28,7 @@
     <div class="joo-comment" v-if="commentList.length != 0">
       <div class="joo-comment-top">全部评论</div>
       <CardItemComment v-for="item of commentList" :key="item.id" :id="item.id" :avatar="item.commenter.profilePicture" :content="item.content"
-        :hasUpPost="item.hasUpPost" :name="item.commenter.realname" :time="item.createTime" @upReply="upReply"></CardItemComment>
+        :hasUpPost="item.hasUpPost" :name="item.commenter.realname" :time="item.createTime" @upReply="upReply(item)"></CardItemComment>
     </div>
     <div class="joo-comment" v-if="commentList.length == 0">
       <div class="no-content">
@@ -167,7 +169,7 @@ export default {
       _this.$bus.$on('menu7', data => {
         // TODO 举报
         _this.showPopupAction({
-          type: false,
+          type: 'error',
           msg: '功能即将开放！'
         })
       })
@@ -175,14 +177,14 @@ export default {
         // TODO 采纳
         if (_this.userId != _this.problemCreaterId) {
           _this.showPopupAction({
-            type: false,
+            type: 'error',
             msg: '您没有权限操作！'
           })
           return
         }
         _this.$net.setBestReply(_this.problemId, _this.replyId).then(res => {
           _this.showPopupAction({
-            type: true,
+            type: 'success',
             msg: '当前答案已设置为最佳采纳！'
           })
         })
@@ -252,18 +254,20 @@ export default {
       }
     },
     upReply(item) {
+      const _this = this
       if (_this.$utils.isEmpty(this.sessionKey)) {
         _this.$utils.oauth()
         return
       }
-      console.log('upReply', item)
-      if (item.isReply) {
+      item.hasUpPost = !item.hasUpPost
+      if (item.hasUpPost) {
         _this.$net.upReply(item.id)
       } else {
         _this.$net.cancelUpReply(item.id)
       }
     },
     upPost() {
+      const _this = this
       if (_this.$utils.isEmpty(this.sessionKey)) {
         _this.$utils.oauth()
         return
