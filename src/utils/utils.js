@@ -22,7 +22,7 @@ utils.isWeixn = function () {
  * @param {*} value
  */
 utils.isEmpty = value => {
-  if (!value || value === undefined || value == 'undefined' || value == '') {
+  if (!value || value === undefined || value == 'undefined' || value == '' || value == NaN) {
     return true
   }
   return false
@@ -89,6 +89,7 @@ utils.initHeader = () => {
     debug: false
   })
 }
+
 utils.setHeader = (menuBar, menuBars, mode = true, navMode = true) => {
   let options = {
     navConfig: {

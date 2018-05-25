@@ -1,33 +1,33 @@
 <template>
-    <div class="joo-card-item">
-        <div class="item-header">
-            <router-link :to="{ name: 'homepageother', params: { id: userId }}">
-                <img class="item-avatar" :src="avatar" />
-            </router-link>
-            <div class="item-name">{{name}}</div>
-            <img v-if="isBestAdopt" class="item-tag" src="@/assets/imgs/best-adopt.png" />
-        </div>
-        <router-link :to="{ name: 'answerList', params: { id: id }}">
-            <div class="item-desc">
-                {{answer}}
-            </div>
-        </router-link>
-        <div class="item-imgs" v-if="hasImage">
-            <flexbox :gutter="0">
-                <flexbox-item v-for="(item, index) of imgList" :span="1/3" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
-            </flexbox>
-        </div>
-        <div class="item-footer">
-            <span class="item-time">{{_time}}</span>
-            <span class="item-numbers">
+  <div class="joo-card-item">
+    <div class="item-header">
+      <router-link :to="{ name: 'homepageother', params: { id: userId }}">
+        <img class="item-avatar" :src="avatar" />
+      </router-link>
+      <div class="item-name">{{name}}</div>
+      <img v-if="isBestAdopt" class="item-tag" src="@/assets/imgs/best-adopt.png" />
+    </div>
+    <router-link :to="{ name: 'answerList', params: { id: id }}">
+      <div class="item-desc">
+        {{answer}}
+      </div>
+    </router-link>
+    <div class="item-imgs" v-if="hasImage">
+      <flexbox :gutter="0">
+        <flexbox-item v-for="(item, index) of imgList" :span="1/3" :key="index"><img class="img-item" :src="item" @click="previewImg(index)" /></flexbox-item>
+      </flexbox>
+    </div>
+    <div class="item-footer">
+      <span class="item-time">{{_time}}</span>
+      <span class="item-numbers">
                 <i class="iconfont icon-pinglun2" style="color:#cccccc;margin-right:5px;margin-top: -1px;vertical-align: middle;display: inline-block;"></i>{{commentNum}} 
                 <i class="iconfont icon-dianzandianzhong" style="margin-right:5px;margin-left:10px;" :style="hasUpPost?'color:#1885c4;':'color:#cccccc;'" @click="fabulous"></i>{{fabulousNum}}
             </span>
-        </div>
-        <div v-transfer-dom>
-            <previewer :list="previewImgs" ref="previewer" :options="options" @on-index-change="logIndexChange"></previewer>
-        </div>
     </div>
+    <div v-transfer-dom>
+      <previewer :list="previewImgs" ref="previewer" :options="options" @on-index-change="logIndexChange"></previewer>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -119,13 +119,7 @@ export default {
   },
   methods: {
     fabulous() {
-      this.hasUpPost = !this.hasUpPost
-      if (this.hasUpPost) {
-        this.fabulousNum++
-      } else {
-        this.fabulousNum--
-      }
-      this.$emit('upPost', { id: this.id, hasUpPost: this.hasUpPost })
+      this.$emit('upPost')
     },
     previewImg(index) {
       this.$refs.previewer.show(index)

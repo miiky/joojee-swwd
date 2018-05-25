@@ -99,38 +99,24 @@ export default {
 
 <style lang="less">
 @import '~vux/src/styles/reset.less';
-
+html,
 body {
-  background-color: #f5f5f5 !important;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  background-color: #f5f5f5;
+}
+#app {
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5;
+  // overflow: scroll;
+  -webkit-overflow-scrolling: touch;
   position: absolute;
   left: 0;
-  right: 0;
   top: 0;
-  bottom: 0;
-}
-
-html {
-  -ms-overflow-style: none;
-  overflow: -moz-scrollbars-none;
-}
-html::-webkit-scrollbar {
-  width: 0px;
-}
-
-.popup-msg {
-  background-color: white;
-  font-size: 14px;
-  padding: 12px;
-  border-bottom: 1px solid #f8f8f8;
-  .msg-icon {
-    margin-right: 5px;
-  }
-}
-.popup-msg-error {
-  color: red;
-}
-.popup-msg-success {
-  color: green;
 }
 
 slide-right-enter-active,

@@ -1,4 +1,3 @@
-import utils from '@/utils/utils'
 import Cookies from 'js-cookie'
 
 const state = {
@@ -84,14 +83,12 @@ const mutations = {
   /**设置用户JEEBBS令牌 */
   setSessionKey(state, payload) {
     state.sessionKey = payload
-    // utils.saveToLocal('session_key', payload)
     Cookies.set('session_key', payload, {
       expires: state.expiresDate
     })
   },
   setUserId(state, payload) {
     state.userId = payload
-    // utils.saveToLocal('userId', payload)
     Cookies.set('userId', payload, {
       expires: state.expiresDate
     })

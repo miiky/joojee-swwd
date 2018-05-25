@@ -65,7 +65,9 @@ net.getSessionKey = token =>
 /**
  * 4、获取热门讨论列表
  */
-net.listHotDiscuss = () => Axios.post(SWWD_API_URL + '/listHotDiscuss')
+net.listHotDiscuss = () => Axios.post(SWWD_API_URL + '/listHotDiscuss', {
+  access_token: store.getters.token,
+})
 
 /**
  * 5、获取推荐列表
@@ -539,4 +541,12 @@ net.listNoticeMessage = () => Axios.post(SWWD_API_URL + '/listNoticeMessage', {
   access_token: store.getters.userAccessToken
 })
 
+/**
+ * 44、删除评论或者回复
+ */
+net.deleteReplyOrComment = (id) => Axios.post(SWWD_API_URL + '/deleteReplyOrComment', {
+  sessionKey: store.getters.sessionKey,
+  access_token: store.getters.userAccessToken,
+  id: id
+})
 export default net

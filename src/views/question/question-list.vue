@@ -30,23 +30,23 @@
       <CardItemAnswer :isBestAdopt="true" v-for="item of bestReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
         :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
         :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :isMyProblem="creater.id == userId" :isMyAnswer="userId == item.replyer.id"
-        @upPost="upPost(item)"></CardItemAnswer>
+        @upPost="upPost(item)" @delAnswer="delAnswer(item.id)"></CardItemAnswer>
     </div>
     <div v-if="goodReply.length != 0">
-      <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">精选回答</span>
+      <span class="title-span">精选回答</span>
       <CardItemAnswer v-for="item of goodReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
         :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
         :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :isMyProblem="creater.id == userId" :isMyAnswer="userId == item.replyer.id"
-        @upPost="upPost(item)" @bestAdopt="bestAdopt(item)"></CardItemAnswer>
+        @upPost="upPost(item)" @bestAdopt="bestAdopt(item)" @delAnswer="delAnswer(item.id)"></CardItemAnswer>
     </div>
     <div v-if="otherReply.length != 0" style="padding-bottom:50px;">
-      <span style="color:#999999;font-size:14px;font-weight:500;padding-left:10px;">其他回答</span>
+      <span class="title-span">其他回答</span>
       <CardItemAnswer v-for="item of otherReply" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
         :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
         :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :isMyProblem="creater.id == userId" :isMyAnswer="userId == item.replyer.id"
-        @upPost="upPost(item)" @bestAdopt="bestAdopt(item)"></CardItemAnswer>
+        @upPost="upPost(item)" @bestAdopt="bestAdopt(item)" @delAnswer="delAnswer(item.id)"></CardItemAnswer>
     </div>
-    <Footer class="joo-question-footer">
+    <Footer class="joo-question-footer" v-if="checkStatus == 1">
       <template slot="content">
         <div class="joo-collect" @click="collect" :class="isCollect?'animated pulse':''">
           <i class="iconfont" :class="isCollect?'icon-shoucang3 collect-icon':'icon-shoucang4'"></i>
@@ -65,7 +65,6 @@
 import Header from '@/views/commons/header.vue'
 import Footer from '@/views/commons/footer.vue'
 import CardItemAnswer from '@/views/commons/card-item-answer.vue'
-// import MyScroll from '@/views/commons/my-scroll.vue'
 
 import { Previewer, TransferDom } from 'vux'
 import { mapGetters, mapMutations, mapActions } from 'vuex'
@@ -88,6 +87,7 @@ export default {
       problemId: null,
       data: [],
       isCollect: false,
+      checkStatus: 1,
       collectNum: 0,
       showDescDetail: true,
       tagList: [],
@@ -141,9 +141,12 @@ export default {
     // if (Utils.isEmpty(_this.sessionKey)) {
     //   await Utils.initOauth()
     // }
-
-    _this._getProblem()
-    _this._listReplys()
+    Promise.all([_this._getProblem(), _this._listReplys()]).then(res => {
+      this.$nextTick(() => {
+        window.scrollTo(0, 1)
+        window.scrollTo(0, 0)
+      })
+    })
   },
   methods: {
     ...mapMutations(['setAnswer']),
@@ -171,6 +174,7 @@ export default {
         _this.content = res.content
         _this.creater = res.creater
         _this.hasImage = res.hasImage
+        _this.checkStatus = res.checkStatus
         _this.images = res.images
         _this.createTime = res.createTime.split(' ')[0]
         _this.viewCount = res.viewCount
@@ -282,6 +286,16 @@ export default {
         })
         _this._listReplys()
       })
+    },
+    delAnswer(id) {
+      const _this = this
+      _this.$net.deleteReplyOrComment(id).then(res => {
+        _this.showPopupAction({
+          type: 'success',
+          msg: '删除成功！'
+        })
+        _this._listReplys()
+      })
     }
   }
 }
@@ -292,11 +306,7 @@ export default {
 }
 .joo-question {
   background-color: #f5f5f5;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   padding-bottom: 50px;
   .joo-question-top-card {
     background-color: white;
@@ -371,6 +381,12 @@ export default {
         font-size: 13px;
       }
     }
+  }
+  .title-span {
+    color: #999999;
+    font-size: 14px;
+    font-weight: 500;
+    padding-left: 10px;
   }
   .joo-question-footer {
     height: 46px;

@@ -23,11 +23,8 @@
     </router-link>
     <div class="item-footer">
       <span class="item-time">{{_time}}
-        <Poptip
-        confirm
-        title="确认删除评论?"
-        @on-ok="del">
-        <span style="margin-left:10px;" v-if="false">删除</span>
+        <Poptip confirm title="确认删除评论?" @on-ok="del">
+          <span style="margin-left:10px;" v-if="isMyAnswer">删除</span>
       </Poptip>
       </span>
       <span class="item-numbers">

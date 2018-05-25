@@ -73,6 +73,13 @@ export default {
       this.showNumbers = true
     },
     submit(item) {
+      if (item.content == '') {
+        this.showPopupAction({
+          type: 'wraning',
+          msg: '个人简介不能为空！'
+        })
+        return
+      }
       this.desc = item.content
       this.showEditDesc = false
       // console.log(item.content)

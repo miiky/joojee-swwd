@@ -39,18 +39,23 @@ export default {
     _this._initData()
   },
   methods: {
+    ...mapActions(['showPopupAction']),
     _initData() {
       const _this = this
       if (_this.type == 0) {
         if (_this.userId == _this.id) {
+          document.title = '我的粉丝'
           _this._listMyFans()
         } else {
+          document.title = 'TA的粉丝'
           _this._listSomeoneFans()
         }
       } else {
         if (_this.userId == _this.id) {
+          document.title = '我的关注'
           _this._listMyAttent()
         } else {
+          document.title = 'TA的关注'
           _this._listSomeoneAttent()
         }
       }
@@ -86,11 +91,15 @@ export default {
     async follow(item) {
       const _this = this
       if (item.hasAttent) {
-        await _this.$net.cancelAttentUser(item.id)
+        await _this.$net.cancelAttentUser(item.id).then(res => {
+          item.hasAttent = !item.hasAttent
+        })
       } else {
-        await _this.$net.attentUser(item.id)
+        await _this.$net.attentUser(item.id).then(res => {
+          item.hasAttent = !item.hasAttent
+        })
       }
-      _this._initData()
+      // _this._initData()
     }
   }
 }

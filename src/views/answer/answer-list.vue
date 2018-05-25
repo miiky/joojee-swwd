@@ -27,8 +27,8 @@
     </div>
     <div class="joo-comment" v-if="commentList.length != 0">
       <div class="joo-comment-top">全部评论</div>
-      <CardItemComment v-for="item of commentList" :key="item.id" :id="item.id" :avatar="item.commenter.profilePicture" :content="item.content"
-        :hasUpPost="item.hasUpPost" :name="item.commenter.realname" :time="item.createTime" @upReply="upReply(item)"></CardItemComment>
+      <CardItemComment v-for="item of commentList" :key="item.id" :id="item.id" :avatar="item.commenter.profilePicture" :content="item.content" @delComment="delComment(item.id)"
+        :hasUpPost="item.hasUpPost" :name="item.commenter.realname" :time="item.createTime" @upReply="upReply(item)" :isMyComment="item.commenter.id == userId"></CardItemComment>
     </div>
     <div class="joo-comment" v-if="commentList.length == 0">
       <div class="no-content">
@@ -232,6 +232,13 @@ export default {
         _this.$utils.oauth()
         return
       }
+      if (_this.$utils.isEmpty(item.content)) {
+        _this.showPopupAction({
+          type: 'wraning',
+          msg: '评论不能为空！'
+        })
+        return
+      }
       _this.$net
         .submitComment(_this.problemId, _this.replyId, item.content)
         .then(res => {
@@ -278,6 +285,17 @@ export default {
       } else {
         _this.$net.cancelUpReply(this.replyId)
       }
+    },
+    delComment(id){
+      const _this = this
+      _this.$net.deleteReplyOrComment(id).then(res => {
+        _this._listComments(1)
+        _this.isInput = false
+        _this.showPopupAction({
+          type: 'success',
+          msg: '删除成功！'
+        })
+      })
     },
     scrollToEnd() {
       setTimeout(() => {

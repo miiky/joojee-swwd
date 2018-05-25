@@ -22,7 +22,7 @@
           </div>
           <CardItemDiscuss v-for="item of hotReplyList" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
             :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
-            :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :imgList="item.images" @upPost="upPost"></CardItemDiscuss>
+            :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :imgList="item.images" @upPost="upPost(item)"></CardItemDiscuss>
         </div>
       </swiper-item>
       <swiper-item>
@@ -33,7 +33,7 @@
           </div>
           <CardItemDiscuss v-for="item of newReplyList" :key="item.id" :id="item.id" :userId="item.replyer.id" :name="item.replyer.realname"
             :avatar="item.replyer.profilePicture" :time="item.createTime" :answer="item.content" :commentNum="item.commentCount"
-            :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :imgList="item.images" @upPost="upPost"></CardItemDiscuss>
+            :fabulousNum="item.upCount" :hasUpPost="item.hasUpPost" :imgList="item.images" @upPost="upPost(item)"></CardItemDiscuss>
         </div>
       </swiper-item>
     </swiper>
@@ -153,6 +153,17 @@ export default {
       })
     },
     upPost(item) {
+      const _this = this
+      if (_this.$utils.isEmpty(this.sessionKey)) {
+        _this.$utils.oauth()
+        return
+      }
+      item.hasUpPost = !item.hasUpPost
+      if (item.hasUpPost) {
+        item.upCount++
+      } else {
+        item.upCount--
+      }
       if (item.hasUpPost) {
         _this.$net.upReply(item.id)
       } else {

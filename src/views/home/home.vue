@@ -1,7 +1,7 @@
 <template>
   <div class="joo-main">
     <div v-show="showRefresh" class="refresh" @click="refresh"><i class="iconfont icon-shuaxin"></i> 刷新页面</div>
-    <div class="joo-hot" ref="hotWrapper">
+    <div class="joo-hot" ref="hotWrapper" v-show="hotDiscussList.length != 0">
       <ul class="hot-list" ref="hotList">
         <li class="hot-item" v-for="item in hotDiscussList" :key="item.id">
           <HotDiscussCard :title="item.title" :count="item.replyCount" :id="item.id"></HotDiscussCard>
@@ -87,17 +87,18 @@ export default {
       showLoading: false,
       showLoadmore: true,
       loadMoreTips: '加载更多',
-      tabIndex: 1,
+      tabIndex:
+        Number.parseInt(localStorage.homeTabIndex) == 0
+          ? 0
+          : Number.parseInt(localStorage.homeTabIndex) || 1,
       tabList: ['关注', '推荐', '最新'],
       chooseTab: '关注',
       showRefresh: true
     }
   },
   watch: {
-    recommondList(val) {
-      this.$nextTick(() => {
-        this.reSizeSwiperHeight(this.tabIndex)
-      })
+    tabIndex(val) {
+      localStorage.homeTabIndex = val
     }
   },
   computed: {
@@ -128,15 +129,43 @@ export default {
     } else {
       _this._initHotWrapper()
     }
-    if (_this.recommondPage == 1) {
-      _this._getRecommondList(1)
-    }
-    if (_this.newestPage == 1) {
-      _this._getNewestList(1)
-    }
-    if (_this.attentionPage == 1) {
-      _this._getAttentionList(1)
-    }
+    let recommonedPro = new Promise((resolve, reject) => {
+      if (_this.recommondPage == 1) {
+        _this._getRecommondList(1).then(res => {
+          resolve()
+        })
+      } else {
+        resolve()
+      }
+    })
+    let newestPro = new Promise((resolve, reject) => {
+      if (_this.newestPage == 1) {
+        _this._getNewestList(1).then(res => {
+          resolve()
+        })
+      } else {
+        resolve()
+      }
+    })
+    let attentionPro = new Promise((resolve, reject) => {
+      if (_this.attentionPage == 1) {
+        _this._getAttentionList(1).then(res => {
+          resolve()
+        })
+      } else {
+        resolve()
+      }
+    })
+    Promise.all([recommonedPro, newestPro, attentionPro]).then(res => {
+      setTimeout(() => {
+        this.reSizeSwiperHeight(this.tabIndex)
+        this.$nextTick(() => {
+          window.scrollTo(0, 1)
+          window.scrollTo(0, 0)
+          console.log('scroll')
+        })
+      }, 500)
+    })
   },
   methods: {
     ...mapMutations([
@@ -168,6 +197,10 @@ export default {
         _this.$router.push('/homepage')
       })
       _this.$bus.$on('menu11', data => {
+        if (_this.$utils.isEmpty(this.sessionKey)) {
+          _this.$utils.oauth()
+          return
+        }
         _this.$router.push('/message')
       })
     },
@@ -284,11 +317,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="less" scoped>
 .joo-main {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   background-color: #f5f5f5;
   .refresh {
     width: 100%;
@@ -306,23 +335,6 @@ export default {
     .hot-list {
       .hot-item {
         display: inline-block;
-      }
-    }
-  }
-  .content-scroll {
-    position: absolute;
-    top: 164px;
-    bottom: 0;
-    width: 100%;
-    .joo-swiper {
-      position: relative;
-      width: 100%;
-      overflow: hidden;
-      // white-space: nowrap;
-      .swiper-con {
-        .swiper-item {
-          display: inline-block;
-        }
       }
     }
   }

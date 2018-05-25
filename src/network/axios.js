@@ -6,7 +6,7 @@ import {
 
 const Axios = axios.create()
 
-Axios.defaults.timeout = 50000
+Axios.defaults.timeout = 30000
 
 Axios.defaults.headers.post['Content-Type'] =
   'application/x-www-form-urlencoded;charset=UTF-8'
@@ -109,6 +109,7 @@ Axios.interceptors.response.use(
         msg: err.message
       })
     } else {
+      console.log('error', error)
       store.commit('clearRequest')
       store.dispatch('showPopupAction', {
         type: 'error',

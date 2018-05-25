@@ -8,6 +8,9 @@
       </div>
       <div class="item-desc">{{content}}</div>
       <div class="item-time">{{time}}
+        <Poptip confirm title="确认删除评论?" @on-ok="del">
+          <span style="margin-left:10px;" v-if="isMyComment">删除</span>
+        </Poptip>
         <!-- <div class="item-answer">回复</div> -->
       </div>
     </div>
@@ -39,11 +42,19 @@ export default {
     hasUpPost: {
       type: Boolean,
       required: true
+    },
+    isMyComment: {
+      type: Boolean,
+      default: false
     }
   },
   methods: {
     upReply() {
       this.$emit('upReply')
+    },
+    del() {
+      this.$emit('delComment')
+      console.log('del')
     }
   }
 }

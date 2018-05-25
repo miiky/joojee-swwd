@@ -133,12 +133,18 @@ export default {
       this.$nextTick(() => {
         this.reSizeSwiperHeight(this.tabIndex)
       })
+    },
+    tabIndex(val) {
+      localStorage.homepageTabIndex = val
     }
   },
   data() {
     return {
       chooseTab: '动态',
-      tabIndex: 0,
+      tabIndex:
+        Number.parseInt(localStorage.homepageTabIndex) == 0
+          ? 0
+          : Number.parseInt(localStorage.homepageTabIndex) || 0,
       tabList: ['动态', '提问', '回答', '收藏'],
       attentCount: 0,
       collectCount: 0,
